@@ -1,0 +1,38 @@
+# Render Blueprint — deploys the whole app (API + React SPA) as ONE web service
+# plus a managed PostgreSQL database.
+#
+# Usage: push this repo to GitHub, then in Render:  New +  ->  Blueprint  ->  pick the repo.
+# After the first deploy, set ADMIN_PASSWORD in the service's Environment tab.
+
+databases:
+  - name: arogyam-db
+    databaseName: arogyam
+    user: arogyam
+    plan: free
+
+services:
+  - type: web
+    name: arogyam-aradhya
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: arogyam-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true        # Render generates a strong random secret
+      - key: CORS_ORIGINS
+        value: "*"                 # API + app share one domain, so this is safe
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false                # set this yourself in the Render dashboard
+      - key: COMPANY_NAME
+        value: Arogyam Aradhya
+      - key: MEMBER_ID_PREFIX
+        value: AA

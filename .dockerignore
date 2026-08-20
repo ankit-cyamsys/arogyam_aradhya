@@ -1,0 +1,15 @@
+**/.venv
+**/venv
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/dev.db
+**/.env
+**/.env.*
+frontend/dist
+.git
+.gitignore
+*.md
+PRODUCT
+logo.jpeg
+start.ps1
