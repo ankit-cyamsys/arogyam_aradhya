@@ -9,6 +9,7 @@ from app.models.mlm import (
     Setting,
 )
 from app.models.admin import AdminUser
+from app.models.kyc import KycDocument
 
 __all__ = [
     "Member",
@@ -22,4 +23,5 @@ __all__ = [
     "WeeklyPayout",
     "Setting",
     "AdminUser",
+    "KycDocument",
 ]

@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi.responses import Response
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
+
+from app.services import kyc as kyc_svc
 
 from app.api.deps import get_current_member
 from app.core.database import get_db
@@ -118,6 +121,32 @@ def team_summary(member: Member = Depends(get_current_member), db: Session = Dep
         "parent": {"member_id": parent.member_id, "name": parent.name} if parent else None,
         "tree": tree.build_tree(db, member, 3),
     }
+
+
+@router.get("/kyc")
+def kyc_status(member: Member = Depends(get_current_member), db: Session = Depends(get_db)):
+    return kyc_svc.list_status(db, member.id)
+
+
+@router.post("/kyc/{doc_type}")
+def kyc_upload(
+    doc_type: str,
+    file: UploadFile = File(...),
+    member: Member = Depends(get_current_member),
+    db: Session = Depends(get_db),
+):
+    doc = kyc_svc.save_document(db, member.id, doc_type, file)
+    return {"doc_type": doc.doc_type, "filename": doc.filename, "uploaded": True}
+
+
+@router.get("/kyc/{doc_type}/file")
+def kyc_file(
+    doc_type: str,
+    member: Member = Depends(get_current_member),
+    db: Session = Depends(get_db),
+):
+    doc = kyc_svc.get_document(db, member.id, doc_type)
+    return Response(content=doc.data, media_type=doc.content_type)
 
 
 @router.get("/level-bonus")

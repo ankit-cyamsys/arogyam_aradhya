@@ -67,6 +67,32 @@ def list_members(q: str | None = None, db: Session = Depends(get_db)):
     ]
 
 
+@router.get("/members/{member_id}/kyc")
+def member_kyc(member_id: str, db: Session = Depends(get_db)):
+    from app.services import kyc as kyc_svc
+    m = db.execute(select(Member).where(Member.member_id == member_id)).scalar_one_or_none()
+    if m is None:
+        raise HTTPException(status_code=404, detail="Member not found")
+    return {
+        "member": {"member_id": m.member_id, "name": m.name, "phone": m.phone,
+                   "pan": m.pan, "aadhaar": m.aadhaar, "bank_name": m.bank_name,
+                   "bank_account": m.bank_account, "bank_ifsc": m.bank_ifsc,
+                   "address": m.address, "is_active": m.is_active},
+        "documents": kyc_svc.list_status(db, m.id),
+    }
+
+
+@router.get("/members/{member_id}/kyc/{doc_type}/file")
+def member_kyc_file(member_id: str, doc_type: str, db: Session = Depends(get_db)):
+    from fastapi.responses import Response
+    from app.services import kyc as kyc_svc
+    m = db.execute(select(Member).where(Member.member_id == member_id)).scalar_one_or_none()
+    if m is None:
+        raise HTTPException(status_code=404, detail="Member not found")
+    doc = kyc_svc.get_document(db, m.id, doc_type)
+    return Response(content=doc.data, media_type=doc.content_type)
+
+
 @router.post("/members/{member_id}/block")
 def toggle_block(member_id: str, db: Session = Depends(get_db)):
     m = db.execute(select(Member).where(Member.member_id == member_id)).scalar_one_or_none()

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../api";
+import KycUploads from "../../components/KycUploads";
 
 const FIELDS = [
   ["email", "Email", "email"],
@@ -72,6 +73,8 @@ export default function Profile() {
           {saved && <span className="text-sm font-semibold text-herb-600">✓ Saved</span>}
         </div>
       </form>
+
+      <KycUploads />
     </div>
   );
 }
