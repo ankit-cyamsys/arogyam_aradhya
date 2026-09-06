@@ -149,15 +149,22 @@ def compute_matching(db: Session, member: Member, commit: bool = True) -> dict:
     right = _d(member.right_carry)
     matched = min(left, right)
 
-    # Plan: ₹1,500 per 100 SP : 100 SP  ==>  ₹15 per matched SP  (50:50 = ₹750)
-    per_sp = _d(cfg.get(db, "matching_per_sp", 15))
-    capping = _d(cfg.get(db, "daily_capping", 25000))
+    # Plan: ₹10 per matched SP, paid only in blocks of 50 SP (50 SP = ₹500).
+    # The unmatched remainder carries forward. Matches the reference payout register.
+    per_sp = _d(cfg.get(db, "matching_per_sp", 10))
+    block = _d(cfg.get(db, "matching_block_sp", 50))
+    capping = _d(cfg.get(db, "daily_capping", 0))
 
-    gross = (matched * per_sp).quantize(Decimal("0.01"))
+    if block > 0:
+        closing = (matched // block) * block   # largest multiple of 50 <= matched
+    else:
+        closing = matched
+    gross = (closing * per_sp).quantize(Decimal("0.01"))
     payout = min(gross, capping) if capping > 0 else gross
 
     result = {
         "matched_sp": float(matched),
+        "closing_sp": float(closing),
         "left_carry_before": float(left),
         "right_carry_before": float(right),
         "gross": float(gross),
@@ -165,11 +172,11 @@ def compute_matching(db: Session, member: Member, commit: bool = True) -> dict:
         "capped": float(max(gross - payout, 0)),
     }
 
-    if matched > 0:
-        member.left_carry = left - matched
-        member.right_carry = right - matched
+    if closing > 0:
+        member.left_carry = left - closing
+        member.right_carry = right - closing
         db.add(CommissionLedger(member_id=member.id, kind="matching", amount=payout,
-                                sp_matched=matched, note="Binary matching"))
+                                sp_matched=closing, note="Binary matching"))
         member.wallet_balance = _d(member.wallet_balance) + payout
         member.total_earned = _d(member.total_earned) + payout
         result["left_carry_after"] = float(member.left_carry)

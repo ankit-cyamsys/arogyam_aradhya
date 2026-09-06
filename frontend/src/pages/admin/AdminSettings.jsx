@@ -14,7 +14,8 @@ const GROUPS = {
 };
 
 const META = {
-  matching_per_sp: "₹ per matched SP (₹15 → 50:50 = ₹750)",
+  matching_per_sp: "₹ per matched SP (₹10 → 50 SP = ₹500)",
+  matching_block_sp: "Matching block size (SP)",
   matching_ratio: "Left:Right ratio",
   daily_capping: "Capping per period (₹, 0 = none)",
   direct_referral_bonus: "Direct referral bonus (₹)",
@@ -49,7 +50,7 @@ const META = {
 };
 
 const GROUP_OF = {
-  matching_per_sp: "matching", matching_ratio: "matching",
+  matching_per_sp: "matching", matching_block_sp: "matching", matching_ratio: "matching",
   daily_capping: "matching", direct_referral_bonus: "matching",
   start_bonus_sp: "start", start_bonus_amount: "start",
   gst_rate: "gst", price_gst_inclusive: "gst", company_legal_name: "gst", gstin: "gst",
