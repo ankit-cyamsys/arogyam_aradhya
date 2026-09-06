@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../api";
 import KycUploads from "../../components/KycUploads";
+import ChangePassword from "../../components/ChangePassword";
 
 const FIELDS = [
   ["email", "Email", "email"],
@@ -75,6 +76,7 @@ export default function Profile() {
       </form>
 
       <KycUploads />
+      <ChangePassword />
     </div>
   );
 }

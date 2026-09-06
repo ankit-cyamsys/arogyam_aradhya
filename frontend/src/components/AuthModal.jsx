@@ -119,6 +119,7 @@ export default function AuthModal({ open, mode: initialMode = "login", onClose }
                 type={showPw ? "text" : "password"}
                 value={form.password}
                 onChange={update("password")}
+                minLength={mode === "signup" ? 6 : undefined}
                 required
               />
               <button

@@ -1,18 +1,28 @@
 from decimal import Decimal
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.core.database import Base
+from app.core.database import Base, get_db
 import app.models  # noqa: F401  (register all models)
+from app.core import ratelimit
 from app.core.security import hash_password
-from app.models import Member, Product, Category, Order, OrderItem
+from app.main import app
+from app.models import Member, Product, Category, Order, OrderItem, AdminUser
 from app.services import settings_service as cfg
 from app.services import tree
 from app.services.ids import generate_member_id, generate_order_no
 from app.services.mlm_engine import process_order
+
+
+@pytest.fixture(autouse=True)
+def _reset_ratelimit():
+    ratelimit._hits.clear()
+    yield
+    ratelimit._hits.clear()
 
 
 @pytest.fixture()
@@ -28,6 +38,25 @@ def db():
         yield s
     finally:
         s.close()
+
+
+@pytest.fixture()
+def client(db):
+    """API test client sharing the in-memory DB session."""
+    def _get_db():
+        yield db
+    app.dependency_overrides[get_db] = _get_db
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def admin_user(db):
+    a = AdminUser(username="admin", password_hash=hash_password("Admin@2026"), name="Admin")
+    db.add(a)
+    db.commit()
+    return a
 
 
 @pytest.fixture()

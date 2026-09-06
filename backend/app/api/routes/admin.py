@@ -103,6 +103,19 @@ def toggle_block(member_id: str, db: Session = Depends(get_db)):
     return {"member_id": m.member_id, "is_blocked": m.is_blocked}
 
 
+@router.post("/members/{member_id}/reset-password")
+def reset_member_password(member_id: str, new_password: str, db: Session = Depends(get_db)):
+    from app.core.security import hash_password
+    if len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    m = db.execute(select(Member).where(Member.member_id == member_id)).scalar_one_or_none()
+    if m is None:
+        raise HTTPException(status_code=404, detail="Member not found")
+    m.password_hash = hash_password(new_password)
+    db.commit()
+    return {"ok": True, "member_id": member_id}
+
+
 # ---- Products ----
 @router.post("/products", response_model=ProductOut)
 def create_product(payload: ProductIn, db: Session = Depends(get_db)):

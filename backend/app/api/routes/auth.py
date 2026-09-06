@@ -5,6 +5,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.ratelimit import rate_limiter
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models import Member, AdminUser
 from app.schemas import (
@@ -30,7 +31,8 @@ def _token(member: Member) -> TokenResponse:
     )
 
 
-@router.post("/signup", response_model=TokenResponse)
+@router.post("/signup", response_model=TokenResponse,
+             dependencies=[Depends(rate_limiter("signup", 10, 600))])
 def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     """MLM (binary network) signup — requires a sponsor and placement leg."""
     sponsor = db.execute(
@@ -41,8 +43,10 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     if sponsor.segment != "mlm":
         raise HTTPException(status_code=400, detail="Sponsor must be an MLM member")
 
+    if db.execute(select(Member.id).where(Member.phone == payload.phone)).scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Phone number already registered")
     if payload.email:
-        dup = db.execute(select(Member).where(Member.email == payload.email)).scalar_one_or_none()
+        dup = db.execute(select(Member.id).where(Member.email == payload.email)).scalar_one_or_none()
         if dup:
             raise HTTPException(status_code=409, detail="Email already registered")
 
@@ -64,11 +68,14 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     return _token(member)
 
 
-@router.post("/direct/signup", response_model=TokenResponse)
+@router.post("/direct/signup", response_model=TokenResponse,
+             dependencies=[Depends(rate_limiter("signup", 10, 600))])
 def direct_signup(payload: DirectSignupRequest, db: Session = Depends(get_db)):
     """Direct-selling signup — standalone agent, no sponsor or binary tree."""
+    if db.execute(select(Member.id).where(Member.phone == payload.phone)).scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Phone number already registered")
     if payload.email:
-        dup = db.execute(select(Member).where(Member.email == payload.email)).scalar_one_or_none()
+        dup = db.execute(select(Member.id).where(Member.email == payload.email)).scalar_one_or_none()
         if dup:
             raise HTTPException(status_code=409, detail="Email already registered")
 
@@ -93,7 +100,8 @@ def direct_signup(payload: DirectSignupRequest, db: Session = Depends(get_db)):
     return _token(member)
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse,
+             dependencies=[Depends(rate_limiter("login", 15, 300))])
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
     ident = payload.username.strip()
     member = db.execute(
@@ -112,12 +120,14 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     return _token(member)
 
 
-@router.post("/token", response_model=TokenResponse)
+@router.post("/token", response_model=TokenResponse,
+             dependencies=[Depends(rate_limiter("login", 15, 300))])
 def token_login(payload: LoginRequest, db: Session = Depends(get_db)):
     return login(payload, db)
 
 
-@router.post("/admin/login", response_model=TokenResponse)
+@router.post("/admin/login", response_model=TokenResponse,
+             dependencies=[Depends(rate_limiter("admin_login", 6, 300))])
 def admin_login(payload: AdminLoginRequest, db: Session = Depends(get_db)):
     admin = db.execute(
         select(AdminUser).where(AdminUser.username == payload.username.strip())

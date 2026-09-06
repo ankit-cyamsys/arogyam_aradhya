@@ -33,7 +33,7 @@ DEFAULTS: dict[str, tuple[Any, str, str]] = {
     "gst_rate": (18.0, "GST rate % on products", "gst"),
     "price_gst_inclusive": (False, "Are DP/MRP prices GST-inclusive?", "gst"),
     "company_legal_name": ("Arogyam Aradhya Herbs", "Legal business name on invoice", "gst"),
-    "gstin": ("", "Company GSTIN", "gst"),
+    "gstin": ("09EJFPP4671A1Z5", "Company GSTIN", "gst"),
     "company_address": ("Varanasi, Uttar Pradesh", "Company address on invoice", "gst"),
     "company_state": ("Uttar Pradesh", "Company state (place of supply)", "gst"),
     "company_state_code": ("09", "GST state code (UP = 09)", "gst"),

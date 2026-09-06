@@ -57,7 +57,7 @@ export default function SellerAuth({ mode = "login" }) {
           {mode === "login" && (
             <div><label className="label">Member ID / Phone</label><input className="input" value={form.username} onChange={upd("username")} required /></div>
           )}
-          <div><label className="label">Password</label><input className="input" type="password" value={form.password} onChange={upd("password")} required /></div>
+          <div><label className="label">Password</label><input className="input" type="password" value={form.password} onChange={upd("password")} minLength={mode === "signup" ? 6 : undefined} required /></div>
           <button className="btn-accent w-full" disabled={busy}>
             {busy ? "Please wait…" : mode === "login" ? "Login" : "Create Seller Account"}
           </button>

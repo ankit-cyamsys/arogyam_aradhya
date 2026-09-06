@@ -9,14 +9,16 @@ from sqlalchemy.orm import Session
 
 from app.services import kyc as kyc_svc
 
+from fastapi import HTTPException
+
 from app.api.deps import get_current_member
 from app.core.database import get_db
+from app.core.security import hash_password, verify_password
 from app.models import Member, CommissionLedger, Order, WeeklyPayout
-from app.schemas import DashboardStats, MemberOut, MemberProfileUpdate, TreeNode
+from app.schemas import ChangePasswordRequest, DashboardStats, MemberOut, MemberProfileUpdate, TreeNode
 from app.services import settings_service as cfg
 from app.services import ranks as ranks_svc
 from app.services import tree
-from app.services.mlm_engine import compute_matching
 
 router = APIRouter(prefix="/api/member", tags=["member"])
 
@@ -121,6 +123,19 @@ def team_summary(member: Member = Depends(get_current_member), db: Session = Dep
         "parent": {"member_id": parent.member_id, "name": parent.name} if parent else None,
         "tree": tree.build_tree(db, member, 3),
     }
+
+
+@router.post("/change-password")
+def change_password(
+    payload: ChangePasswordRequest,
+    member: Member = Depends(get_current_member),
+    db: Session = Depends(get_db),
+):
+    if not verify_password(payload.current_password, member.password_hash):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    member.password_hash = hash_password(payload.new_password)
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("/kyc")
