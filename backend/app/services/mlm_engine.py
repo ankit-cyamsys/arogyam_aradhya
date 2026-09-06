@@ -68,40 +68,33 @@ def process_mlm_order(db: Session, buyer: Member, order: Order) -> None:
         buyer.activated_at = utcnow()
         _pay_direct_referral(db, buyer, order)
 
-    # 2. Propagate SP up the binary tree, then settle each ancestor in real time
+    # 2. Propagate SP up the binary tree. Matching is settled at the WEEKLY close
+    #    (see close_payout_period), so per order we only accrue SP and refresh rank.
     for ancestor, leg in tree.ancestors_with_leg(db, buyer):
         if leg == "L":
             ancestor.left_carry = _d(ancestor.left_carry) + order_sp
             ancestor.total_left_sp = _d(ancestor.total_left_sp) + order_sp
+            ancestor.week_left_sp = _d(ancestor.week_left_sp) + order_sp
         else:
             ancestor.right_carry = _d(ancestor.right_carry) + order_sp
             ancestor.total_right_sp = _d(ancestor.total_right_sp) + order_sp
+            ancestor.week_right_sp = _d(ancestor.week_right_sp) + order_sp
         db.add(SPLedger(member_id=ancestor.id, source_member_id=buyer.id, order_id=order.id,
                         leg=leg, sp=order_sp, note=f"Downline {buyer.member_id}"))
-        # Binary matching pays the parent as soon as both legs have volume
-        # (e.g. 50:50 => ₹750). Runs per order so payouts are immediate.
-        compute_matching(db, ancestor, commit=False)
-        _pay_start_bonus(db, ancestor)
+        update_rank(db, ancestor)
 
-    # 3. Level (sponsor line) bonus
-    _pay_level_bonus(db, buyer, order)
-
+    update_rank(db, buyer)
     db.commit()
 
 
-def _pay_start_bonus(db: Session, member: Member) -> None:
-    """One-time Start Level Bonus: 200 SP Left + 200 SP Right => ₹3,000."""
-    if member.start_bonus_paid:
-        return
-    need = _d(cfg.get(db, "start_bonus_sp", 200))
-    if _d(member.total_left_sp) >= need and _d(member.total_right_sp) >= need:
-        amount = _d(cfg.get(db, "start_bonus_amount", 3000))
-        member.start_bonus_paid = True
-        if amount > 0:
-            db.add(CommissionLedger(member_id=member.id, kind="start", amount=amount,
-                                    note=f"Start bonus ({int(need)}:{int(need)} SP)"))
-            member.wallet_balance = _d(member.wallet_balance) + amount
-            member.total_earned = _d(member.total_earned) + amount
+def update_rank(db: Session, member: Member) -> int:
+    """Refresh a member's displayed rank from cumulative L/R SP. Returns rank level."""
+    from app.services import ranks as ranks_svc
+    r = ranks_svc.compute_rank(ranks_svc.get_ranks(db), member.total_left_sp, member.total_right_sp)
+    level = r["level"] if r else 0
+    if level != member.rank_level:
+        member.rank_level = level
+    return level
 
 
 def _pay_direct_referral(db: Session, buyer: Member, order: Order) -> None:
@@ -186,3 +179,79 @@ def compute_matching(db: Session, member: Member, commit: bool = True) -> dict:
         db.commit()
 
     return result
+
+
+def close_payout_period(db: Session, period: str, week_label: str | None = None) -> dict:
+    """Weekly close: match every member's carry (₹10/SP in 50-blocks) and write
+    one payout-register row per member who had activity. Returns a summary.
+    """
+    from sqlalchemy import select
+    from app.models import WeeklyPayout
+
+    per_sp = _d(cfg.get(db, "matching_per_sp", 10))
+    block = _d(cfg.get(db, "matching_block_sp", 50))
+    capping = _d(cfg.get(db, "daily_capping", 0))
+
+    members = db.execute(select(Member).where(Member.segment == "mlm")).scalars().all()
+    rows = 0
+    total_paid = Decimal("0")
+    for m in members:
+        left = _d(m.left_carry)
+        right = _d(m.right_carry)
+        wk_left = _d(m.week_left_sp)
+        wk_right = _d(m.week_right_sp)
+        matched = min(left, right)
+        closing = (matched // block) * block if block > 0 else matched
+        gross = (closing * per_sp).quantize(Decimal("0.01"))
+        payout = min(gross, capping) if capping > 0 else gross
+
+        # Skip members with no activity and nothing to pay this period.
+        if wk_left == 0 and wk_right == 0 and closing == 0:
+            continue
+
+        if closing > 0:
+            m.left_carry = left - closing
+            m.right_carry = right - closing
+            m.wallet_balance = _d(m.wallet_balance) + payout
+            m.total_earned = _d(m.total_earned) + payout
+            db.add(CommissionLedger(member_id=m.id, kind="matching", amount=payout,
+                                    sp_matched=closing, period=period, note=f"Weekly matching {period}"))
+            total_paid += payout
+
+        db.add(WeeklyPayout(
+            member_id=m.id, period=period, week_label=week_label or period,
+            left_sp=wk_left, right_sp=wk_right, matching_sp=matched, closing_sp=closing,
+            payout=payout, cf_left=m.left_carry, cf_right=m.right_carry, status="paid",
+        ))
+        rows += 1
+        m.week_left_sp = Decimal("0")
+        m.week_right_sp = Decimal("0")
+
+    db.commit()
+    return {"period": period, "rows": rows, "total_paid": float(total_paid)}
+
+
+def pay_due_rank_bonuses(db: Session, member: Member) -> list[dict]:
+    """Admin action: pay all achieved-but-unpaid one-time rank bonuses to a member.
+
+    Mirrors the reference where rank bonuses are paid manually from admin.
+    """
+    from app.services import ranks as ranks_svc
+
+    ranks = ranks_svc.get_ranks(db)
+    update_rank(db, member)  # ensure rank_level is current
+    paid = []
+    for lvl in range(int(member.rank_bonus_paid_level) + 1, int(member.rank_level) + 1):
+        r = ranks_svc.rank_by_level(ranks, lvl)
+        if not r:
+            continue
+        amount = _d(r.get("bonus", 0))
+        if amount > 0:
+            db.add(CommissionLedger(member_id=member.id, kind="rank", amount=amount,
+                                    note=f"Rank bonus: {r['name']} ({r['sp']}:{r['sp']} SP)"))
+            member.wallet_balance = _d(member.wallet_balance) + amount
+            member.total_earned = _d(member.total_earned) + amount
+        member.rank_bonus_paid_level = lvl
+        paid.append({"level": lvl, "name": r["name"], "bonus": float(amount), "reward": r.get("reward")})
+    db.commit()
+    return paid

@@ -50,19 +50,22 @@ class PayoutRequest(Base, TimestampMixin):
 
 
 class WeeklyPayout(Base, TimestampMixin):
-    """Snapshot of a member's payout for a closing period."""
+    """One row of a member's weekly payout register (mirrors the reference)."""
 
     __tablename__ = "weekly_payouts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     member_id: Mapped[int] = mapped_column(ForeignKey("members.id"), index=True, nullable=False)
-    period: Mapped[str] = mapped_column(String(20), index=True)
-    matching_sp: Mapped[float] = mapped_column(Numeric(12, 2), default=0)
-    matching_amount: Mapped[float] = mapped_column(Numeric(12, 2), default=0)
-    level_amount: Mapped[float] = mapped_column(Numeric(12, 2), default=0)
-    gross: Mapped[float] = mapped_column(Numeric(12, 2), default=0)
-    capped: Mapped[float] = mapped_column(Numeric(12, 2), default=0)
-    net: Mapped[float] = mapped_column(Numeric(12, 2), default=0)
+    period: Mapped[str] = mapped_column(String(20), index=True)      # e.g. "2026-W36" or a date
+    week_label: Mapped[str | None] = mapped_column(String(40))       # human label e.g. "28 Aug 2026"
+    left_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0)     # SP added left this week
+    right_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0)    # SP added right this week
+    matching_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0) # matchable this close
+    closing_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0)  # matched in 50-blocks
+    payout: Mapped[float] = mapped_column(Numeric(14, 2), default=0)      # closing_sp * rate
+    cf_left: Mapped[float] = mapped_column(Numeric(14, 2), default=0)     # carry forward after
+    cf_right: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
+    status: Mapped[str] = mapped_column(String(20), default="paid")
 
 
 class Setting(Base, TimestampMixin):

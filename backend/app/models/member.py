@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -38,8 +38,14 @@ class Member(Base, TimestampMixin):
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=False)   # "green" ID (>=50 SP self purchase)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False)
-    start_bonus_paid: Mapped[bool] = mapped_column(Boolean, default=False)  # 200:200 SP one-time bonus
     activated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    rank_level: Mapped[int] = mapped_column(Integer, default=0)  # 0=none, 1=Winner ... 12=Global Icon
+    rank_bonus_paid_level: Mapped[int] = mapped_column(Integer, default=0)  # highest rank bonus paid
+
+    # SP added this payout-week (for the payout register); reset at weekly close
+    week_left_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
+    week_right_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
 
     # Running balances / carry-forward (in SP)
     left_carry: Mapped[float] = mapped_column(Numeric(14, 2), default=0)

@@ -9,6 +9,13 @@ export default function AdminMembers() {
   useEffect(() => { load(); }, [q]);
 
   const toggle = async (id) => { await api.post(`/admin/members/${id}/block`); load(); };
+  const payRank = async (id) => {
+    const { data } = await api.post(`/admin/members/${id}/pay-rank-bonus`);
+    if (data.paid.length === 0) alert("No pending rank bonus for this member.");
+    else alert("Paid rank bonuses: " + data.paid.map((p) => `${p.name} ₹${p.bonus}`).join(", "));
+    load();
+  };
+  const RANK_NAMES = ["—","Winner","Achiever","Warrior","Champion","Master","Commander","Royal Exec","Imperial","Diamond","Crown","King","Global Icon"];
 
   return (
     <div className="space-y-6">
@@ -19,7 +26,7 @@ export default function AdminMembers() {
       <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-herb-50 text-left text-xs uppercase text-herb-600">
-            <tr><th className="px-4 py-3">Member ID</th><th className="px-4 py-3">Portal</th><th className="px-4 py-3">Name</th><th className="px-4 py-3">Phone</th><th className="px-4 py-3">Wallet</th><th className="px-4 py-3">Earned</th><th className="px-4 py-3">Status</th><th className="px-4 py-3"></th></tr>
+            <tr><th className="px-4 py-3">Member ID</th><th className="px-4 py-3">Portal</th><th className="px-4 py-3">Name</th><th className="px-4 py-3">Rank</th><th className="px-4 py-3">Wallet</th><th className="px-4 py-3">Earned</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Actions</th></tr>
           </thead>
           <tbody className="divide-y divide-herb-50">
             {rows.map((m) => (
@@ -31,7 +38,11 @@ export default function AdminMembers() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-herb-800">{m.name}</td>
-                <td className="px-4 py-3 text-herb-500">{m.phone}</td>
+                <td className="px-4 py-3">
+                  {m.segment === "mlm" && m.rank_level > 0
+                    ? <span className="chip bg-herb-50 text-herb-700">{RANK_NAMES[m.rank_level]}</span>
+                    : <span className="text-herb-300">—</span>}
+                </td>
                 <td className="px-4 py-3">₹{Number(m.wallet_balance).toFixed(2)}</td>
                 <td className="px-4 py-3">₹{Number(m.total_earned).toFixed(2)}</td>
                 <td className="px-4 py-3">
@@ -40,6 +51,9 @@ export default function AdminMembers() {
                     : <span className={`chip ${m.is_active ? "bg-herb-100 text-herb-700" : "bg-slate-100 text-slate-500"}`}>{m.is_active ? "Active" : "Inactive"}</span>}
                 </td>
                 <td className="px-4 py-3 text-right">
+                  {m.segment === "mlm" && m.rank_level > m.rank_bonus_paid_level && (
+                    <button onClick={() => payRank(m.member_id)} className="mr-2 font-semibold text-marigold-600 hover:underline">Pay Rank Bonus</button>
+                  )}
                   <button onClick={() => toggle(m.member_id)} className={m.is_blocked ? "text-herb-600 hover:underline" : "text-red-500 hover:underline"}>
                     {m.is_blocked ? "Unblock" : "Block"}
                   </button>

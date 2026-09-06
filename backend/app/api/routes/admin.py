@@ -18,7 +18,8 @@ from app.models import (
 )
 from app.schemas import ProductIn, ProductOut, SettingUpdate
 from app.services import settings_service as cfg
-from app.services.mlm_engine import compute_matching
+from app.services import ranks as ranks_svc
+from app.services.mlm_engine import close_payout_period, pay_due_rank_bonuses
 from app.utils.text import slugify
 
 router = APIRouter(prefix="/api/admin", tags=["admin"], dependencies=[Depends(get_current_admin)])
@@ -59,6 +60,8 @@ def list_members(q: str | None = None, db: Session = Depends(get_db)):
             "is_blocked": m.is_blocked,
             "wallet_balance": float(m.wallet_balance or 0),
             "total_earned": float(m.total_earned or 0),
+            "rank_level": m.rank_level or 0,
+            "rank_bonus_paid_level": m.rank_bonus_paid_level or 0,
         }
         for m in rows
     ]
@@ -149,14 +152,25 @@ def act_payout(payout_id: int, action: str, db: Session = Depends(get_db)):
     return {"id": req.id, "status": req.status}
 
 
-@router.post("/matching/run-all")
-def run_all_matching(db: Session = Depends(get_db)):
-    members = db.execute(select(Member).where(Member.is_active.is_(True))).scalars().all()
-    total = Decimal("0")
-    for m in members:
-        res = compute_matching(db, m, commit=True)
-        total += Decimal(str(res["payout"]))
-    return {"processed": len(members), "total_paid": float(total)}
+@router.post("/payouts/close")
+def close_weekly(period: str, label: str | None = None, db: Session = Depends(get_db)):
+    """Run the weekly binary-matching close for all MLM members."""
+    return close_payout_period(db, period, label)
+
+
+@router.get("/ranks")
+def list_ranks(db: Session = Depends(get_db)):
+    return ranks_svc.get_ranks(db)
+
+
+@router.post("/members/{member_id}/pay-rank-bonus")
+def pay_rank_bonus(member_id: str, db: Session = Depends(get_db)):
+    """Pay all achieved-but-unpaid one-time rank bonuses to a member."""
+    m = db.execute(select(Member).where(Member.member_id == member_id)).scalar_one_or_none()
+    if m is None:
+        raise HTTPException(status_code=404, detail="Member not found")
+    paid = pay_due_rank_bonuses(db, m)
+    return {"member_id": member_id, "rank_level": m.rank_level, "paid": paid}
 
 
 # ---- Settings ----

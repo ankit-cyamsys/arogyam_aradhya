@@ -8,9 +8,10 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_member
 from app.core.database import get_db
-from app.models import Member, CommissionLedger, Order
+from app.models import Member, CommissionLedger, Order, WeeklyPayout
 from app.schemas import DashboardStats, MemberOut, MemberProfileUpdate, TreeNode
 from app.services import settings_service as cfg
+from app.services import ranks as ranks_svc
 from app.services import tree
 from app.services.mlm_engine import compute_matching
 
@@ -49,7 +50,8 @@ def dashboard(member: Member = Depends(get_current_member), db: Session = Depend
     left = Decimal(str(member.left_carry or 0))
     right = Decimal(str(member.right_carry or 0))
     matching_sp = float(min(left, right))
-    level_recv = _sum(db, member.id, "level")
+    level_recv = _sum(db, member.id, "rank") + _sum(db, member.id, "referral")
+    rank = ranks_svc.rank_by_level(ranks_svc.get_ranks(db), member.rank_level or 0)
 
     return DashboardStats(
         week_payout=0.0,
@@ -66,6 +68,9 @@ def dashboard(member: Member = Depends(get_current_member), db: Session = Depend
         total_left_sp=float(member.total_left_sp or 0),
         total_right_sp=float(member.total_right_sp or 0),
         wallet_balance=float(member.wallet_balance or 0),
+        rank_level=member.rank_level or 0,
+        rank_name=(rank["name"] if rank else ""),
+        rank_tier=(rank["tier"] if rank else ""),
     )
 
 
@@ -115,7 +120,61 @@ def team_summary(member: Member = Depends(get_current_member), db: Session = Dep
     }
 
 
-@router.post("/matching/run")
-def run_matching(member: Member = Depends(get_current_member), db: Session = Depends(get_db)):
-    """Trigger a matching calculation for this member (admin runs weekly in prod)."""
-    return compute_matching(db, member, commit=True)
+@router.get("/level-bonus")
+def level_bonus(member: Member = Depends(get_current_member), db: Session = Depends(get_db)):
+    ranks = ranks_svc.get_ranks(db)
+    rank = ranks_svc.rank_by_level(ranks, member.rank_level or 0)
+    payments = db.execute(
+        select(CommissionLedger)
+        .where(CommissionLedger.member_id == member.id, CommissionLedger.kind == "rank")
+        .order_by(CommissionLedger.created_at.desc())
+    ).scalars().all()
+    return {
+        "stored_level": member.rank_level or 0,
+        "level_name": rank["name"] if rank else "—",
+        "tier": rank["tier"] if rank else "",
+        "cumulative_left_sp": float(member.total_left_sp or 0),
+        "cumulative_right_sp": float(member.total_right_sp or 0),
+        "matching_sp": float(min(Decimal(str(member.total_left_sp or 0)), Decimal(str(member.total_right_sp or 0)))),
+        "bonus_payments": [
+            {"amount": float(p.amount), "date": p.created_at, "status": "paid", "remarks": p.note}
+            for p in payments
+        ],
+        "ranks": ranks,
+    }
+
+
+@router.get("/bonus")
+def bonus_payments(member: Member = Depends(get_current_member), db: Session = Depends(get_db)):
+    rows = db.execute(
+        select(CommissionLedger)
+        .where(CommissionLedger.member_id == member.id, CommissionLedger.kind.in_(["rank", "referral"]))
+        .order_by(CommissionLedger.created_at.desc())
+    ).scalars().all()
+    return [
+        {"date": r.created_at, "amount": float(r.amount), "kind": r.kind, "status": "paid", "note": r.note}
+        for r in rows
+    ]
+
+
+@router.get("/payout-register")
+def payout_register(member: Member = Depends(get_current_member), db: Session = Depends(get_db)):
+    rows = db.execute(
+        select(WeeklyPayout)
+        .where(WeeklyPayout.member_id == member.id)
+        .order_by(WeeklyPayout.created_at.desc())
+    ).scalars().all()
+    total = db.execute(
+        select(func.coalesce(func.sum(WeeklyPayout.payout), 0)).where(WeeklyPayout.member_id == member.id)
+    ).scalar_one()
+    return {
+        "total_earned": float(total),
+        "rows": [
+            {
+                "week_label": r.week_label, "left_sp": float(r.left_sp), "right_sp": float(r.right_sp),
+                "matching_sp": float(r.matching_sp), "closing_sp": float(r.closing_sp),
+                "payout": float(r.payout), "cf_left": float(r.cf_left), "cf_right": float(r.cf_right),
+                "status": r.status,
+            } for r in rows
+        ],
+    }

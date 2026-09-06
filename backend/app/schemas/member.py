@@ -13,6 +13,7 @@ class MemberOut(BaseModel):
     phone: str | None = None
     position: str | None = None
     is_active: bool
+    rank_level: int = 0
     address: str | None = None
     city: str | None = None
     state: str | None = None
@@ -55,6 +56,9 @@ class DashboardStats(BaseModel):
     total_left_sp: float
     total_right_sp: float
     wallet_balance: float
+    rank_level: int = 0
+    rank_name: str = ""
+    rank_tier: str = ""
 
 
 class TreeNode(BaseModel):

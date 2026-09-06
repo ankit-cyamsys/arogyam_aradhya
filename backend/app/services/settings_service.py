@@ -22,9 +22,6 @@ DEFAULTS: dict[str, tuple[Any, str, str]] = {
     "matching_ratio": ("1:1", "Left:Right matching ratio", "matching"),
     "daily_capping": (0.0, "Max matching payout per member per period (₹, 0 = no cap)", "matching"),
     "direct_referral_bonus": (500.0, "One-time bonus per direct referral (₹)", "matching"),
-    # ---- Start Level Bonus (one-time) ----
-    "start_bonus_sp": (200.0, "SP needed on EACH leg for the start bonus", "start"),
-    "start_bonus_amount": (3000.0, "Start Level Bonus amount (₹) at 200:200 SP", "start"),
     # ---- Level / referral bonus (index 0 = level 1 = direct sponsor) ----
     # Not part of the Arogyam plan — kept configurable but disabled by default.
     "level_bonus_percent": (json.dumps([]), "Level bonus % by depth (empty = off)", "level"),

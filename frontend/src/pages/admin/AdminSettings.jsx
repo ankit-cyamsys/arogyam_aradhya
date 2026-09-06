@@ -3,7 +3,6 @@ import api from "../../api";
 
 const GROUPS = {
   matching: "Binary Matching (MLM)",
-  start: "Start Level Bonus",
   direct: "Direct Selling (DSA)",
   gst: "GST / Invoicing",
   level: "Level Bonus (off)",
@@ -19,8 +18,6 @@ const META = {
   matching_ratio: "Left:Right ratio",
   daily_capping: "Capping per period (₹, 0 = none)",
   direct_referral_bonus: "Direct referral bonus (₹)",
-  start_bonus_sp: "SP on each leg for start bonus",
-  start_bonus_amount: "Start bonus amount (₹)",
   gst_rate: "GST rate %",
   price_gst_inclusive: "Prices are GST-inclusive?",
   company_legal_name: "Legal business name",
@@ -52,7 +49,6 @@ const META = {
 const GROUP_OF = {
   matching_per_sp: "matching", matching_block_sp: "matching", matching_ratio: "matching",
   daily_capping: "matching", direct_referral_bonus: "matching",
-  start_bonus_sp: "start", start_bonus_amount: "start",
   gst_rate: "gst", price_gst_inclusive: "gst", company_legal_name: "gst", gstin: "gst",
   company_address: "gst", company_state: "gst", company_state_code: "gst",
   hsn_default: "gst", invoice_prefix: "gst",
