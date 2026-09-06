@@ -17,6 +17,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Cart from "./pages/Cart";
 import Join from "./pages/Join";
+import Invoice from "./pages/Invoice";
 
 import SellerAuth from "./pages/seller/SellerAuth";
 import SellerDashboard from "./pages/seller/SellerDashboard";
@@ -70,6 +71,15 @@ export default function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/join" element={<Join />} />
       </Route>
+
+      <Route
+        path="/invoice/:orderId"
+        element={
+          <RequireRole role="member">
+            <Invoice />
+          </RequireRole>
+        }
+      />
 
       <Route path="/seller/login" element={<SellerAuth mode="login" />} />
       <Route path="/seller/signup" element={<SellerAuth mode="signup" />} />

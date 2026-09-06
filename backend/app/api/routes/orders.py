@@ -10,6 +10,7 @@ from app.api.deps import get_current_member
 from app.core.database import get_db
 from app.models import Member, Order, OrderItem, Product
 from app.schemas import OrderIn, OrderOut
+from app.services import settings_service as cfg
 from app.services.ids import generate_order_no
 from app.services.mlm_engine import process_order
 
@@ -60,8 +61,15 @@ def place_order(
             OrderItem(product_id=product.id, name=product.name, price=price, sp=sp, quantity=qty)
         )
 
+    # GST: subtotal is the taxable value (DP). Add GST on top when prices are
+    # GST-exclusive; when inclusive, the tax is already inside the price.
+    gst_rate = Decimal(str(cfg.get(db, "gst_rate", 18)))
+    inclusive = bool(cfg.get(db, "price_gst_inclusive", False))
     order.subtotal = subtotal
-    order.total = subtotal
+    if inclusive:
+        order.total = subtotal
+    else:
+        order.total = (subtotal * (Decimal("1") + gst_rate / Decimal("100"))).quantize(Decimal("0.01"))
     order.total_sp = total_sp
     # Demo flow: mark paid immediately so commissions flow. Wire a real gateway later.
     order.status = "paid"
@@ -74,3 +82,20 @@ def place_order(
     process_order(db, order)
     db.refresh(order)
     return order
+
+
+@router.get("/{order_id}/invoice")
+def order_invoice(
+    order_id: int,
+    member: Member = Depends(get_current_member),
+    db: Session = Depends(get_db),
+):
+    order = (
+        db.execute(
+            select(Order).where(Order.id == order_id).options(selectinload(Order.items))
+        ).scalar_one_or_none()
+    )
+    if order is None or order.member_id != member.id:
+        raise HTTPException(status_code=404, detail="Order not found")
+    from app.services.invoice import build_invoice
+    return build_invoice(db, order)

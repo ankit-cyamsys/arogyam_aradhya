@@ -35,9 +35,12 @@ def process_order(db: Session, order: Order) -> None:
 
 
 def process_direct_order(db: Session, buyer: Member, order: Order) -> None:
-    """Direct seller earns a flat DSA % on their own sale. No tree, no SP."""
+    """Direct seller earns a flat DSA % on their own sale. No tree, no SP.
+
+    Commission is on the taxable value (DP), not the GST-inclusive grand total.
+    """
     dsa_pct = _d(cfg.get(db, "dsa_percent", 40))
-    commission = (_d(order.total) * dsa_pct / _d(100)).quantize(Decimal("0.01"))
+    commission = (_d(order.subtotal) * dsa_pct / _d(100)).quantize(Decimal("0.01"))
     if commission > 0:
         db.add(CommissionLedger(member_id=buyer.id, kind="dsa", amount=commission,
                                 note=f"{dsa_pct}% on {order.order_no}"))

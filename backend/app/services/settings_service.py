@@ -25,15 +25,22 @@ DEFAULTS: dict[str, tuple[Any, str, str]] = {
     "start_bonus_sp": (200.0, "SP needed on EACH leg for the start bonus", "start"),
     "start_bonus_amount": (3000.0, "Start Level Bonus amount (₹) at 200:200 SP", "start"),
     # ---- Level / referral bonus (index 0 = level 1 = direct sponsor) ----
-    "level_bonus_percent": (
-        json.dumps([10, 5, 3, 2, 1]),
-        "Level bonus % of order value by depth (direct, 2nd, 3rd...)",
-        "level",
-    ),
+    # Not part of the Arogyam plan — kept configurable but disabled by default.
+    "level_bonus_percent": (json.dumps([]), "Level bonus % by depth (empty = off)", "level"),
     # ---- Direct-selling platform (DSA) ----
-    "dsa_percent": (40.0, "Direct-seller (DSA) commission % of sale", "direct"),
+    "dsa_percent": (40.0, "Direct-seller (DSA) commission % of sale (on taxable value)", "direct"),
     "mgmt_percent": (25.0, "Management share % of sale", "direct"),
     "company_profit_percent": (35.0, "Company profit share % of sale", "direct"),
+    # ---- GST / Invoicing ----
+    "gst_rate": (18.0, "GST rate % on products", "gst"),
+    "price_gst_inclusive": (False, "Are DP/MRP prices GST-inclusive?", "gst"),
+    "company_legal_name": ("Arogyam Aradhya Herbs", "Legal business name on invoice", "gst"),
+    "gstin": ("", "Company GSTIN", "gst"),
+    "company_address": ("Varanasi, Uttar Pradesh", "Company address on invoice", "gst"),
+    "company_state": ("Uttar Pradesh", "Company state (place of supply)", "gst"),
+    "company_state_code": ("09", "GST state code (UP = 09)", "gst"),
+    "hsn_default": ("30049011", "Default HSN/SAC code for products", "gst"),
+    "invoice_prefix": ("INV", "Invoice number prefix", "gst"),
     # ---- Plan economics (reference / guardrails) ----
     "product_cost_percent": (36.0, "Product cost (COGS) as % of turnover", "economics"),
     "payout_min_percent": (18.0, "Total network payout floor (% of turnover)", "economics"),
