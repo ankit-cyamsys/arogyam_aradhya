@@ -58,14 +58,14 @@ def process_mlm_order(db: Session, buyer: Member, order: Order) -> None:
     buyer.self_purchase_sp = _d(buyer.self_purchase_sp) + order_sp
     db.add(SPLedger(member_id=buyer.id, source_member_id=buyer.id, order_id=order.id,
                     leg="S", sp=order_sp, note="Self purchase"))
-    activation_sp = _d(cfg.get(db, "activation_sp", 100))
+    activation_sp = _d(cfg.get(db, "activation_sp", 50))  # "greening" at 50 SP
     if not buyer.is_active and _d(buyer.self_purchase_sp) >= activation_sp:
         buyer.is_active = True
         from app.models.base import utcnow
         buyer.activated_at = utcnow()
         _pay_direct_referral(db, buyer, order)
 
-    # 2. Propagate SP up the binary tree
+    # 2. Propagate SP up the binary tree, then settle each ancestor in real time
     for ancestor, leg in tree.ancestors_with_leg(db, buyer):
         if leg == "L":
             ancestor.left_carry = _d(ancestor.left_carry) + order_sp
@@ -75,11 +75,30 @@ def process_mlm_order(db: Session, buyer: Member, order: Order) -> None:
             ancestor.total_right_sp = _d(ancestor.total_right_sp) + order_sp
         db.add(SPLedger(member_id=ancestor.id, source_member_id=buyer.id, order_id=order.id,
                         leg=leg, sp=order_sp, note=f"Downline {buyer.member_id}"))
+        # Binary matching pays the parent as soon as both legs have volume
+        # (e.g. 50:50 => ₹750). Runs per order so payouts are immediate.
+        compute_matching(db, ancestor, commit=False)
+        _pay_start_bonus(db, ancestor)
 
     # 3. Level (sponsor line) bonus
     _pay_level_bonus(db, buyer, order)
 
     db.commit()
+
+
+def _pay_start_bonus(db: Session, member: Member) -> None:
+    """One-time Start Level Bonus: 200 SP Left + 200 SP Right => ₹3,000."""
+    if member.start_bonus_paid:
+        return
+    need = _d(cfg.get(db, "start_bonus_sp", 200))
+    if _d(member.total_left_sp) >= need and _d(member.total_right_sp) >= need:
+        amount = _d(cfg.get(db, "start_bonus_amount", 3000))
+        member.start_bonus_paid = True
+        if amount > 0:
+            db.add(CommissionLedger(member_id=member.id, kind="start", amount=amount,
+                                    note=f"Start bonus ({int(need)}:{int(need)} SP)"))
+            member.wallet_balance = _d(member.wallet_balance) + amount
+            member.total_earned = _d(member.total_earned) + amount
 
 
 def _pay_direct_referral(db: Session, buyer: Member, order: Order) -> None:
@@ -127,11 +146,11 @@ def compute_matching(db: Session, member: Member, commit: bool = True) -> dict:
     right = _d(member.right_carry)
     matched = min(left, right)
 
-    sp_value = _d(cfg.get(db, "sp_currency_value", 1))
-    match_pct = _d(cfg.get(db, "matching_percent", 10))
+    # Plan: ₹1,500 per 100 SP : 100 SP  ==>  ₹15 per matched SP  (50:50 = ₹750)
+    per_sp = _d(cfg.get(db, "matching_per_sp", 15))
     capping = _d(cfg.get(db, "daily_capping", 25000))
 
-    gross = (matched * sp_value * match_pct / _d(100)).quantize(Decimal("0.01"))
+    gross = (matched * per_sp).quantize(Decimal("0.01"))
     payout = min(gross, capping) if capping > 0 else gross
 
     result = {
@@ -143,15 +162,17 @@ def compute_matching(db: Session, member: Member, commit: bool = True) -> dict:
         "capped": float(max(gross - payout, 0)),
     }
 
-    if commit and matched > 0:
+    if matched > 0:
         member.left_carry = left - matched
         member.right_carry = right - matched
         db.add(CommissionLedger(member_id=member.id, kind="matching", amount=payout,
                                 sp_matched=matched, note="Binary matching"))
         member.wallet_balance = _d(member.wallet_balance) + payout
         member.total_earned = _d(member.total_earned) + payout
-        db.commit()
         result["left_carry_after"] = float(member.left_carry)
         result["right_carry_after"] = float(member.right_carry)
+
+    if commit:
+        db.commit()
 
     return result

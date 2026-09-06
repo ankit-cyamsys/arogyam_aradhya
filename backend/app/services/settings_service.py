@@ -17,13 +17,13 @@ from app.models import Setting
 # key -> (default_value, label, group)
 DEFAULTS: dict[str, tuple[Any, str, str]] = {
     # ---- Binary matching (MLM) ----
-    "sp_currency_value": (10.0, "Rupee value of 1 SP (₹ per SP)", "matching"),
+    "matching_per_sp": (15.0, "₹ per matched SP (₹1,500 per 100:100 → 50:50 = ₹750)", "matching"),
     "matching_ratio": ("1:1", "Left:Right matching ratio", "matching"),
-    "matching_percent": (10.0, "Matching payout % of matched SP value", "matching"),
-    "daily_capping": (25000.0, "Max matching payout per member per period (₹)", "matching"),
-    "min_matching_pairs": (1.0, "Minimum matched SP required to earn", "matching"),
-    "flush_unmatched": (False, "Flush unmatched carry-forward each period", "matching"),
+    "daily_capping": (0.0, "Max matching payout per member per period (₹, 0 = no cap)", "matching"),
     "direct_referral_bonus": (500.0, "One-time bonus per direct referral (₹)", "matching"),
+    # ---- Start Level Bonus (one-time) ----
+    "start_bonus_sp": (200.0, "SP needed on EACH leg for the start bonus", "start"),
+    "start_bonus_amount": (3000.0, "Start Level Bonus amount (₹) at 200:200 SP", "start"),
     # ---- Level / referral bonus (index 0 = level 1 = direct sponsor) ----
     "level_bonus_percent": (
         json.dumps([10, 5, 3, 2, 1]),
@@ -39,7 +39,7 @@ DEFAULTS: dict[str, tuple[Any, str, str]] = {
     "payout_min_percent": (18.0, "Total network payout floor (% of turnover)", "economics"),
     "payout_max_percent": (22.0, "Total network payout ceiling (% of turnover)", "economics"),
     # ---- Activation / eligibility ----
-    "activation_sp": (100.0, "Self-purchase SP required to activate an ID", "eligibility"),
+    "activation_sp": (50.0, "Self-purchase SP to activate/green an ID", "eligibility"),
     "repurchase_sp": (25.0, "Monthly repurchase SP to stay active", "eligibility"),
     # ---- Payout ----
     "payout_min": (500.0, "Minimum wallet balance to request payout (₹)", "payout"),

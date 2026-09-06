@@ -36,8 +36,9 @@ class Member(Base, TimestampMixin):
     parent_id: Mapped[int | None] = mapped_column(ForeignKey("members.id"), index=True)
     position: Mapped[str | None] = mapped_column(String(1))  # 'L' or 'R'
 
-    is_active: Mapped[bool] = mapped_column(Boolean, default=False)   # activated after first purchase
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False)   # "green" ID (>=50 SP self purchase)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False)
+    start_bonus_paid: Mapped[bool] = mapped_column(Boolean, default=False)  # 200:200 SP one-time bonus
     activated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     # Running balances / carry-forward (in SP)

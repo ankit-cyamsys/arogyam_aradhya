@@ -3,6 +3,7 @@ import api from "../../api";
 
 const GROUPS = {
   matching: "Binary Matching (MLM)",
+  start: "Start Level Bonus",
   level: "Level Bonus",
   direct: "Direct Selling (DSA)",
   economics: "Plan Economics",
@@ -12,13 +13,12 @@ const GROUPS = {
 };
 
 const META = {
-  sp_currency_value: "₹ value per SP (1 SP = ₹10)",
+  matching_per_sp: "₹ per matched SP (₹15 → 50:50 = ₹750)",
   matching_ratio: "Left:Right ratio",
-  matching_percent: "Matching payout %",
-  daily_capping: "Capping per period (₹)",
-  min_matching_pairs: "Min matched SP to earn",
-  flush_unmatched: "Flush unmatched each period",
+  daily_capping: "Capping per period (₹, 0 = none)",
   direct_referral_bonus: "Direct referral bonus (₹)",
+  start_bonus_sp: "SP on each leg for start bonus",
+  start_bonus_amount: "Start bonus amount (₹)",
   level_bonus_percent: "Level % list e.g. [10,5,3,2,1]",
   dsa_percent: "Direct-seller commission %",
   mgmt_percent: "Management share %",
@@ -39,9 +39,9 @@ const META = {
 };
 
 const GROUP_OF = {
-  sp_currency_value: "matching", matching_ratio: "matching", matching_percent: "matching",
-  daily_capping: "matching", min_matching_pairs: "matching", flush_unmatched: "matching",
-  direct_referral_bonus: "matching",
+  matching_per_sp: "matching", matching_ratio: "matching",
+  daily_capping: "matching", direct_referral_bonus: "matching",
+  start_bonus_sp: "start", start_bonus_amount: "start",
   level_bonus_percent: "level",
   dsa_percent: "direct", mgmt_percent: "direct", company_profit_percent: "direct",
   product_cost_percent: "economics", payout_min_percent: "economics", payout_max_percent: "economics",
