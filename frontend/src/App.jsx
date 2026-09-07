@@ -37,6 +37,7 @@ import IdCard from "./pages/member/IdCard";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminOverview from "./pages/admin/Overview";
 import AdminProducts from "./pages/admin/AdminProducts";
+import AdminOrders from "./pages/admin/AdminOrders";
 import AdminMembers from "./pages/admin/AdminMembers";
 import AdminPayouts from "./pages/admin/AdminPayouts";
 import AdminSettings from "./pages/admin/AdminSettings";
@@ -129,6 +130,7 @@ export default function App() {
         }
       >
         <Route index element={<AdminOverview />} />
+        <Route path="orders" element={<AdminOrders />} />
         <Route path="products" element={<AdminProducts />} />
         <Route path="members" element={<AdminMembers />} />
         <Route path="payouts" element={<AdminPayouts />} />

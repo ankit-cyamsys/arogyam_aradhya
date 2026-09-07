@@ -28,7 +28,11 @@ export default function Orders() {
                   <div className="text-xs text-herb-500">{new Date(o.created_at).toLocaleString()}</div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="chip bg-herb-100 text-herb-700 capitalize">{o.status}</span>
+                  <span className={`chip capitalize ${
+                    o.status === "paid" ? "bg-herb-100 text-herb-700"
+                    : o.status === "cancelled" ? "bg-red-50 text-red-600"
+                    : "bg-marigold-50 text-marigold-700"
+                  }`}>{o.status === "pending" ? "⏳ pending" : o.status}</span>
                   <span className="font-bold text-herb-700">₹{o.total}</span>
                   <span className="chip bg-marigold-50 text-marigold-700">{o.total_sp} SP</span>
                   <button onClick={() => navigate(`/invoice/${o.id}`)} className="btn-outline py-1.5 text-xs">🧾 Invoice</button>

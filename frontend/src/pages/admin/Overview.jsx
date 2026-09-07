@@ -13,9 +13,9 @@ export default function Overview() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <StatCard label="Total Members" value={d.members} icon="👥" />
         <StatCard label="Active Members" value={d.active_members} accent="marigold" icon="✅" />
-        <StatCard label="Orders" value={d.orders} icon="📦" />
-        <StatCard label="Revenue" value={`₹${Number(d.revenue).toLocaleString("en-IN")}`} accent="marigold" icon="💰" />
-        <StatCard label="Pending Payouts" value={d.pending_payouts} icon="⏳" />
+        <StatCard label="Pending Orders" value={d.pending_orders ?? 0} accent="marigold" icon="⏳" />
+        <StatCard label="Revenue (confirmed)" value={`₹${Number(d.revenue).toLocaleString("en-IN")}`} accent="marigold" icon="💰" />
+        <StatCard label="Pending Payouts" value={d.pending_payouts} icon="💳" />
       </div>
       <div className="card p-6 text-sm text-herb-600">
         <h2 className="mb-2 font-bold text-herb-800">Welcome, Administrator 🌿</h2>

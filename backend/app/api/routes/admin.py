@@ -19,7 +19,7 @@ from app.models import (
 from app.schemas import ProductIn, ProductOut, SettingUpdate
 from app.services import settings_service as cfg
 from app.services import ranks as ranks_svc
-from app.services.mlm_engine import close_payout_period, pay_due_rank_bonuses
+from app.services.mlm_engine import close_payout_period, pay_due_rank_bonuses, process_order
 from app.utils.text import slugify
 
 router = APIRouter(prefix="/api/admin", tags=["admin"], dependencies=[Depends(get_current_admin)])
@@ -30,7 +30,12 @@ def overview(db: Session = Depends(get_db)):
     members = db.execute(select(func.count(Member.id))).scalar_one()
     active = db.execute(select(func.count(Member.id)).where(Member.is_active.is_(True))).scalar_one()
     orders = db.execute(select(func.count(Order.id))).scalar_one()
-    revenue = db.execute(select(func.coalesce(func.sum(Order.total), 0))).scalar_one()
+    pending_orders = db.execute(
+        select(func.count(Order.id)).where(Order.payment_status == "unpaid", Order.status != "cancelled")
+    ).scalar_one()
+    revenue = db.execute(
+        select(func.coalesce(func.sum(Order.total), 0)).where(Order.payment_status == "paid")
+    ).scalar_one()
     pending_payouts = db.execute(
         select(func.count(PayoutRequest.id)).where(PayoutRequest.status == "pending")
     ).scalar_one()
@@ -38,6 +43,7 @@ def overview(db: Session = Depends(get_db)):
         "members": members,
         "active_members": active,
         "orders": orders,
+        "pending_orders": pending_orders,
         "revenue": float(revenue),
         "pending_payouts": pending_payouts,
     }
@@ -114,6 +120,61 @@ def reset_member_password(member_id: str, new_password: str, db: Session = Depen
     m.password_hash = hash_password(new_password)
     db.commit()
     return {"ok": True, "member_id": member_id}
+
+
+# ---- Orders (payment confirmation) ----
+@router.get("/orders")
+def list_orders(status: str | None = None, db: Session = Depends(get_db)):
+    from sqlalchemy.orm import selectinload
+    from app.models import Order
+    stmt = select(Order).options(selectinload(Order.items))
+    if status:
+        stmt = stmt.where(Order.status == status)
+    rows = db.execute(stmt.order_by(Order.created_at.desc()).limit(500)).scalars().all()
+    out = []
+    for o in rows:
+        m = db.get(Member, o.member_id)
+        out.append({
+            "id": o.id, "order_no": o.order_no,
+            "member_id": m.member_id if m else None, "member_name": m.name if m else None,
+            "segment": m.segment if m else None,
+            "subtotal": float(o.subtotal), "total": float(o.total), "total_sp": float(o.total_sp),
+            "status": o.status, "payment_status": o.payment_status,
+            "created_at": o.created_at,
+            "items": [{"name": it.name, "qty": it.quantity, "price": float(it.price)} for it in o.items],
+        })
+    return out
+
+
+@router.post("/orders/{order_id}/confirm")
+def confirm_order(order_id: int, db: Session = Depends(get_db)):
+    """Confirm payment received → process SP, commissions and activation (once)."""
+    from app.models import Order
+    order = db.get(Order, order_id)
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.payment_status == "paid":
+        raise HTTPException(status_code=400, detail="Order already confirmed")
+    if order.status == "cancelled":
+        raise HTTPException(status_code=400, detail="Order is cancelled")
+    order.status = "paid"
+    order.payment_status = "paid"
+    db.commit()
+    process_order(db, order)          # SP propagation, activation, referral / DSA
+    return {"id": order.id, "order_no": order.order_no, "status": "paid"}
+
+
+@router.post("/orders/{order_id}/cancel")
+def cancel_order(order_id: int, db: Session = Depends(get_db)):
+    from app.models import Order
+    order = db.get(Order, order_id)
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.payment_status == "paid":
+        raise HTTPException(status_code=400, detail="Cannot cancel a confirmed order")
+    order.status = "cancelled"
+    db.commit()
+    return {"id": order.id, "status": "cancelled"}
 
 
 # ---- Products ----

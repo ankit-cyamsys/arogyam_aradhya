@@ -35,13 +35,19 @@ export default function Cart() {
   };
 
   if (done) {
+    const ordersLink = auth?.segment === "direct" ? "/seller/orders" : "/dashboard/orders";
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
-        <div className="text-6xl">✅</div>
-        <h1 className="mt-4 text-2xl font-bold text-herb-800">Order Placed!</h1>
+        <div className="text-6xl">🧾</div>
+        <h1 className="mt-4 text-2xl font-bold text-herb-800">Order Placed — Payment Pending</h1>
         <p className="mt-2 text-herb-500">Order <b>{done.order_no}</b> · ₹{done.total} · {done.total_sp} SP</p>
-        <div className="mt-6 flex justify-center gap-3">
-          <button onClick={() => navigate("/dashboard/orders")} className="btn-primary">View Orders</button>
+        <div className="mx-auto mt-5 max-w-md rounded-2xl bg-marigold-50 p-5 text-left text-sm text-marigold-800 ring-1 ring-marigold-100">
+          <div className="font-semibold">Next step: complete your payment</div>
+          <p className="mt-1">Pay <b>₹{done.total}</b> via UPI / bank transfer (see the Pay page), then share the reference with your sponsor/admin. Your order and points activate once the admin confirms payment.</p>
+        </div>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link to="/pay" className="btn-accent">Payment Details</Link>
+          <button onClick={() => navigate(ordersLink)} className="btn-primary">View Orders</button>
           <Link to="/products" className="btn-outline">Continue Shopping</Link>
         </div>
       </div>

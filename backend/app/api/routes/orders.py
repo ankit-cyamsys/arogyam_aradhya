@@ -12,7 +12,6 @@ from app.models import Member, Order, OrderItem, Product
 from app.schemas import OrderIn, OrderOut
 from app.services import settings_service as cfg
 from app.services.ids import generate_order_no
-from app.services.mlm_engine import process_order
 
 router = APIRouter(prefix="/api/orders", tags=["orders"])
 
@@ -71,15 +70,13 @@ def place_order(
     else:
         order.total = (subtotal * (Decimal("1") + gst_rate / Decimal("100"))).quantize(Decimal("0.01"))
     order.total_sp = total_sp
-    # Demo flow: mark paid immediately so commissions flow. Wire a real gateway later.
-    order.status = "paid"
-    order.payment_status = "paid"
+    # Orders await admin payment confirmation. SP/commissions are processed only
+    # when an admin confirms the payment (manual UPI/bank), not at placement.
+    order.status = "pending"
+    order.payment_status = "unpaid"
 
     db.add(order)
     db.commit()
-    db.refresh(order)
-
-    process_order(db, order)
     db.refresh(order)
     return order
 
