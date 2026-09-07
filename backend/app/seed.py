@@ -13,8 +13,6 @@ from app.core.database import Base, SessionLocal, engine
 from app.core.security import hash_password
 from app.models import AdminUser, Category, Member, Product
 from app.services import settings_service as cfg
-from app.services import tree
-from app.services.ids import generate_member_id
 from app.utils.text import slugify
 
 # category slug -> display name
@@ -133,51 +131,19 @@ def seed() -> None:
             db.commit()
             print(f"Seeded {len(PRODUCTS)} products + {len(OFFER_PACKAGES)} offer packs.")
 
-        # Demo network (root + a few placed members) for the genealogy tree
+        # Founder / root of the binary tree — the top sponsor for all signups.
         if not db.execute(select(Member)).scalars().first():
             root = Member(
-                member_id=generate_member_id(db),
-                name="Demo Root",
+                member_id=f"{settings.MEMBER_ID_PREFIX}10000001",
+                segment="mlm",
+                name="Arogyam Aradhya",
                 phone="9000000001",
-                email="demo@arogyamaradhya.com",
-                password_hash=hash_password("demo123"),
+                password_hash=hash_password("Founder@2026"),
                 is_active=True,
             )
             db.add(root)
             db.commit()
-            db.refresh(root)
-
-            names = ["Ambika Yadav", "Ganesh Kumar", "Saroj Devi", "Ramesh Yadav",
-                     "Sunita Sharma", "Vijay Gupta", "Anita Devi"]
-            for i, nm in enumerate(names):
-                parent, leg = tree.find_placement(db, root, "L" if i % 2 == 0 else "R")
-                m = Member(
-                    member_id=generate_member_id(db),
-                    name=nm,
-                    phone=f"90000000{10 + i}",
-                    password_hash=hash_password("demo123"),
-                    sponsor_id=root.id,
-                    parent_id=parent.id,
-                    position=leg,
-                    is_active=(i % 2 == 0),
-                )
-                db.add(m)
-                db.commit()
-            print(f"Demo MLM root member: {root.member_id} / demo123")
-
-            seller = Member(
-                member_id=generate_member_id(db),
-                segment="direct",
-                name="Demo Seller",
-                phone="9000000099",
-                email="seller@arogyamaradhya.com",
-                password_hash=hash_password("demo123"),
-                is_active=True,
-            )
-            db.add(seller)
-            db.commit()
-            db.refresh(seller)
-            print(f"Demo Direct seller: {seller.member_id} / demo123")
+            print(f"Founder root: {root.member_id} / Founder@2026")
 
         print("Seed complete.")
     finally:
