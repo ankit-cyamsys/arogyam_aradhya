@@ -40,12 +40,12 @@ class Member(Base, TimestampMixin):
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False)
     activated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    rank_level: Mapped[int] = mapped_column(Integer, default=0)  # 0=none, 1=Winner ... 12=Global Icon
-    rank_bonus_paid_level: Mapped[int] = mapped_column(Integer, default=0)  # highest rank bonus paid
+    rank_level: Mapped[int] = mapped_column(Integer, default=0, server_default="0")  # 0=none .. 12=Global Icon
+    rank_bonus_paid_level: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     # SP added this payout-week (for the payout register); reset at weekly close
-    week_left_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
-    week_right_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
+    week_left_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0, server_default="0")
+    week_right_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0, server_default="0")
 
     # Running balances / carry-forward (in SP)
     left_carry: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
