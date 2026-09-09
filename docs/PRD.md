@@ -70,6 +70,7 @@ Two earning portals on one shared product catalog + one admin panel:
 ## 5. Authentication & Security ✅
 
 - Passwords: bcrypt. JWT (HS256), 1-day expiry, `SECRET_KEY` from env.
+- **Login is case-insensitive for the member ID** — `aa10000001`, `AA10000001`, `Aa10000001` all log into the same account. Email is matched case-insensitively too; phone is digits. ✅
 - Signup: password ≥ 6 chars, phone normalized to 10 digits (+91/spaces stripped), email format-validated, **phone unique** across both portals.
 - Rate limiting per IP: login 15/5min, signup 10/10min, admin 6/5min.
 - Self-service change password; admin can reset a member's password.
@@ -77,23 +78,31 @@ Two earning portals on one shared product catalog + one admin panel:
 
 ---
 
-## 6. Member Lifecycle & GREENING ❓ **(needs your rules)**
+## 6. Member Lifecycle & GREENING ✅ (rules confirmed) / ❓ (values pending)
 
-**Currently built (🟡 simplified):**
-- A member joins under a sponsor (placement L/R). Starts **inactive (red)**.
-- On a self-purchase reaching **≥ 50 SP** (`activation_sp`), the member flips to **`is_active = True` (green)**, `activated_at` is set, and the sponsor is paid the **₹500 direct-referral** bonus (once).
-- Greening currently happens when the order is **confirmed by admin**.
+**The greening flow (confirmed by owner 2026-09-09):**
 
-**❓ Please specify the real greening rules — I likely missed these:**
-1. Is the greening threshold exactly **50 SP** in ONE order, or cumulative self-purchase? First order only or any time?
-2. Is there a **time window** to green (e.g., must green within N days of joining, else ID lapses)?
-3. **Green-to-green matching?** Do BOTH a left and a right downline need to be *green* for a matched pair to count/pay? (Many binary plans require this.)
-4. **Re-greening / monthly repurchase** to stay green & keep earning? (`repurchase_sp` exists but unused.) What SP, what period, what happens if missed (red = no matching)?
-5. Does greening affect **"Active Members"** counts on My Team? (Currently `is_active` drives it.)
-6. Any **franchise/ID activation fee** or joining package (25/50/100 SP packages) tied to greening?
-7. Red vs Green — any partial states (e.g., "SP done but KYC pending")?
+1. A visitor **signs up** under a sponsor (placement L/R) → account starts **RED (inactive)**.
+2. They **shop** and place an order. The order (with **DP prices, a GST invoice, and the delivery address**) is **sent to WhatsApp** for the company. 🔜 *(WhatsApp send — to build, see §14)*
+3. The member **pays** (UPI / bank). When the **admin confirms payment received**, the order is processed.
+4. **Greening rule:** an ID turns **GREEN only when the member's cumulative self-purchase reaches ≥ 25 SP** (`activation_sp = 25`). Example: buy 10 SP → still RED; the admin will **not** green the ID until total shopping reaches 25 SP.
+5. **First purchase decides the capping** (max payout limit) for that ID — set at greening from the joining/first-purchase amount. See §9a. ❓ *(exact SP→capping mapping pending business)*
 
-_→ Fill in the exact rules here and I'll rewrite the greening engine + tests._
+**SP counts in the tree regardless of green status (confirmed):**
+- The moment a member's order is confirmed, their **SP propagates up the binary tree** and contributes to every ancestor's leg — so **matching flows to the parent/upline** even if the buyer themselves is not yet green. A member can even build their own 100:100 downline.
+
+**Earning is gated on the earner's own green status (confirmed):**
+- A member **personally receives Matching Bonus and Level Bonus only if their OWN ID is GREEN** (≥ 25 SP self-purchase). While RED, their own SP keeps accumulating (carry forward) but no matching/level payout is credited to them until they green.
+
+**Built today (🟡 to be aligned to the above):**
+- Green flag = `is_active`. Currently flips green at `activation_sp` SP (change **50 → 25**) on admin order-confirm; sponsor gets **₹500 direct-referral** on green.
+- **To implement:** (a) threshold 25 SP; (b) gate matching **and** level-bonus payout on earner-green; (c) capping set from first purchase.
+
+**❓ Still open (for business):**
+1. Exact **SP → capping ₹** mapping (25 SP → ₹?, 50 → ₹?, 100 → ₹?). Reference showed a ₹50,000 capping.
+2. **Time window** to green after joining (does a RED ID ever lapse)?
+3. **Monthly repurchase** to stay green/earning? SP + period + penalty if missed?
+4. Joining **packages** (25/50/100 SP = ₹3,000/6,000/12,000) — is greening tied to buying a package, or any products totalling ≥25 SP?
 
 ---
 
@@ -114,16 +123,21 @@ _→ Fill in the exact rules here and I'll rewrite the greening engine + tests._
 
 ---
 
-## 9. Binary Matching & Weekly Payout ✅
+## 9. Binary Matching & Weekly Payout ✅ (confirmed)
 
-- **Rate:** ₹10 per matched SP (`matching_per_sp`).
-- **Blocks:** pays only in multiples of **50 SP** (`matching_block_sp`): 50→₹500, 100→₹1000, 150→₹1500…
-- **Carry forward:** unmatched SP (and any sub-50 remainder) rolls to next period.
-- **Weekly close** (admin-run, "Run Weekly Close"): for each member, `matched = min(left_carry,right_carry)`, `closing = floor(matched/50)*50`, `payout = closing×₹10`; writes a **payout-register row** (Week, L SP, R SP, Matching SP, Closing SP, Payout, CF L, CF R) and credits wallet.
-- ❓ Capping? (`daily_capping`=0 = none) — is there a weekly/rank matching cap?
-- ❓ Min payout to withdraw is 50 SP (₹500) — confirm.
-- ❓ Should close be **automatic** on a fixed weekday (cron), not just manual?
-- ❓ Green-to-green requirement (see §6.3) — currently matching counts all SP regardless of downline green status.
+- **Rate:** **1 SP = ₹10** (`matching_per_sp`). Simple calculation on matched SP.
+- **Payout in ₹500 blocks:** minimum payout **₹500** and only in **multiples of ₹500** — i.e. per **50 matched SP** (50→₹500, 100→₹1,000, 150→₹1,500…). `matching_block_sp = 50`.
+- **Carry forward:** unmatched SP and any sub-₹500 remainder **carries forward** to the next period. ✅
+- **Weekly close** (admin "Run Weekly Close"): `matched = min(left_carry, right_carry)`, `closing = floor(matched/50)×50`, `payout = closing × ₹10`; writes a **payout-register row** (Week, L SP, R SP, Matching SP, Closing SP, Payout, CF L, CF R) and credits the wallet.
+- **Green gate (confirmed):** a member is paid matching **only if their own ID is green** (§6). RED members' SP keeps carrying forward; it pays out once they green. *(to implement)*
+
+### 9a. Capping ✅ principle / ❓ values
+- The member's **first purchase decides their capping** (a maximum payout limit for the ID), set at greening.
+- Once capping is set, the ₹10/SP-in-₹500-blocks payout math applies within that cap.
+- ❓ Business to give the exact **first-purchase SP → capping ₹** table.
+
+**Other open:**
+- ❓ Should the weekly close run **automatically** on a fixed weekday (cron), not just manual?
 
 ---
 
@@ -153,11 +167,12 @@ _→ Fill in the exact rules here and I'll rewrite the greening engine + tests._
 
 ---
 
-## 11. Direct Referral & Other Bonuses ✅ / ❓
+## 11. Level Bonus & Direct Referral ✅ (present, green-gated) / ❓ (formula)
 
-- **Direct referral:** ₹500 to the sponsor when a directly-sponsored member greens (one-time). ❓ Is it ₹500 per direct, only first, or per-leg (the old sheet showed "Direct Ref 1/2 ₹500")?
-- **Unilevel "level bonus":** built but **disabled** (`level_bonus_percent = []`) — not in your plan. ❓ Keep off?
-- ❓ Any **repurchase/retail** income, **pool/turnover** bonus, or **leadership override** beyond matching + rank + referral?
+- **Level Bonus is an active income** and, like matching, is **paid only when the earner's own ID is green** (§6). *(to enable + green-gate)*
+- ❓ **Exact level-bonus definition needed from business:** is it the **career-rank achievement bonus** (§10 — the "Level Bonus" page in the reference), or a separate **generation/level income** (a %/amount on each level of downline SP/purchases)? Give the level→amount/percent table if the latter.
+- **Direct referral:** ₹500 to the sponsor when a directly-sponsored member greens (one-time). ❓ ₹500 per direct, only first, or per-leg (old sheet showed "Direct Ref 1/2 = ₹500")?
+- ❓ Any **repurchase/retail** income, **pool/turnover** bonus, or **leadership override** beyond matching + level + rank + referral?
 
 ---
 
@@ -178,12 +193,13 @@ _→ Fill in the exact rules here and I'll rewrite the greening engine + tests._
 
 ---
 
-## 14. Orders & Payment (Admin-Confirm) ✅
+## 14. Orders & Payment (Admin-Confirm + WhatsApp) ✅ / 🔜
 
 - Member places order → **status `pending` / `unpaid`**. No SP/commissions yet.
-- Member pays via **UPI/bank** (manual) per the Pay page.
-- Admin **Confirms Payment** → SP propagation, greening, referral, DSA commission all run (once). Or **Cancels** (only if unpaid).
-- No online gateway (your choice). ❓ Any payment-reference field the member should submit for the admin to match?
+- **Order goes to WhatsApp** for the company with **DP prices, the GST invoice, and the delivery address** (confirmed flow). 🔜 *to build — via a `wa.me` deep link and/or WhatsApp notification.* ❓ company WhatsApp number + exact message format.
+- Member **pays via UPI/bank** (manual) per the Pay page. ❓ Should the member submit a **payment reference** for the admin to match?
+- Admin **Confirms Payment** → SP propagation, greening (if ≥25 SP), referral, DSA commission all run once. Or **Cancels** (only while unpaid).
+- No online gateway (owner's choice).
 
 ---
 
@@ -227,15 +243,16 @@ Overview (members, active, pending orders, confirmed revenue, pending payouts) �
 | daily_capping | 0 | matching cap (0=none) |
 | direct_referral_bonus | 500 | ₹ per direct referral |
 | dsa_percent | 40 | direct-seller commission % |
-| activation_sp | 50 | SP to green an ID |
-| repurchase_sp | 25 | (unused) monthly repurchase SP |
+| activation_sp | **25** | SP (cumulative self-purchase) to green an ID |
+| repurchase_sp | 25 | (unused) monthly repurchase SP — ❓ rules |
+| capping_by_first_purchase | ❓ | first-purchase SP → capping ₹ table (pending) |
 | gst_rate | 18 | GST % |
 | price_gst_inclusive | false | DP is GST-exclusive |
 | gstin | 09EJFPP4671A1Z5 | company GSTIN |
 | payout_min | 500 | min withdrawal ₹ |
 | admin_charge_percent | 5 | (not yet applied) |
 | tds_percent | 5 | (not yet applied) |
-| level_bonus_percent | [] | unilevel bonus (off) |
+| level_bonus_percent | [] | level bonus — **to be enabled**, formula pending (§11) |
 
 Ranks live in code (`app/services/ranks.py`) — ❓ move to editable settings?
 
@@ -253,18 +270,31 @@ Ranks live in code (`app/services/ranks.py`) — ❓ move to editable settings?
 
 ---
 
-## 21. Open Items / TODO
+## 21. Status Summary
 
-1. ❓ **Greening process** — full rules (§6) — TOP PRIORITY.
-2. ❓ Green-to-green matching requirement (§9).
-3. ❓ Repurchase/maintenance rules (§6.4, §10).
-4. ❓ TDS + admin charge on withdrawals (§17).
-5. ❓ Automatic weekly close (cron) vs manual.
-6. ❓ Real offer-package SP values (§13).
-7. 🔜 Offers / target-promotions section (deferred by you).
-8. ❓ Direct-referral exact rule (§11).
-9. ❓ Any other income types (pool/turnover/leadership) not covered.
+### ✅ Confirmed rules (to implement in the engine)
+- Case-insensitive member-ID login.
+- Greening = admin-confirmed payment **AND cumulative self-purchase ≥ 25 SP**.
+- SP always counts in the tree & flows matching to the parent, regardless of buyer's green status.
+- Member earns **matching + level bonus only when their OWN ID is green**.
+- Matching = ₹10/SP, paid in ₹500 blocks (per 50 SP), remainder carries forward.
+- First purchase decides the ID's capping.
+- Level bonus is present and green-gated.
+- Order sent to WhatsApp with DP + invoice + delivery address.
+
+### ❓ Pending from business (kept as ❓ in the doc)
+1. **Capping table** — first-purchase SP → capping ₹ (§9a).
+2. **Level-bonus definition/rates** — rank bonus or generation income? (§11).
+3. **Direct-referral** exact rule — per direct / first only / per-leg (§11).
+4. **Repurchase/maintenance** to stay green & keep rank (§6, §10).
+5. **Greening time window** / ID lapse (§6).
+6. **TDS 5% + admin charge 5%** on withdrawals — how applied (§17).
+7. **Rank** — auto vs admin-approved; are +mobile/bike/car amounts cash or gifts (§10).
+8. **WhatsApp** number + message format (§14).
+9. **Offer-package SP** real values (§13); **per-product HSN/GST** (§15).
+10. Auto weekly close (cron)? (§9); any other income (pool/turnover/leadership)?
+11. 🔜 Offers / target-promotions section (deferred).
 
 ---
 
-_When you've filled the ❓ items, I'll update the engine + tests to match, then we finalize the backend._
+_Confirmed items get built into the engine + tests; ❓ items go to the business team, then we finalize the backend._
