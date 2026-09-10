@@ -20,17 +20,14 @@ DEFAULTS: dict[str, tuple[Any, str, str]] = {
     "matching_per_sp": (10.0, "₹ per matched SP (1 SP : 1 SP = ₹10 → 50 SP = ₹500)", "matching"),
     "matching_block_sp": (50.0, "Matching pays in blocks of this many SP (min 50)", "matching"),
     "matching_ratio": ("1:1", "Left:Right matching ratio", "matching"),
-    "daily_capping": (0.0, "Max matching payout per member per period (₹, 0 = no cap)", "matching"),
-    "direct_referral_bonus": (500.0, "One-time bonus per direct referral (₹)", "matching"),
-    # ---- Level / referral bonus (index 0 = level 1 = direct sponsor) ----
-    # Not part of the Arogyam plan — kept configurable but disabled by default.
-    "level_bonus_percent": (json.dumps([]), "Level bonus % by depth (empty = off)", "level"),
+    # Weekly matching capping tiers by the member's first (greening) purchase SP.
+    "capping_25sp": (50000.0, "Weekly matching cap (₹) if first purchase ≥25 SP", "matching"),
+    "capping_50sp": (100000.0, "Weekly matching cap (₹) if first purchase ≥50 SP", "matching"),
+    "capping_100sp": (200000.0, "Weekly matching cap (₹) if first purchase ≥100 SP", "matching"),
     # ---- Direct-selling platform (DSA) ----
     "dsa_percent": (40.0, "Direct-seller (DSA) commission % of sale (on taxable value)", "direct"),
-    "mgmt_percent": (25.0, "Management share % of sale", "direct"),
-    "company_profit_percent": (35.0, "Company profit share % of sale", "direct"),
     # ---- GST / Invoicing ----
-    "gst_rate": (18.0, "GST rate % on products", "gst"),
+    "gst_rate": (5.0, "GST rate % on products", "gst"),
     "price_gst_inclusive": (False, "Are DP/MRP prices GST-inclusive?", "gst"),
     "company_legal_name": ("Arogyam Aradhya Herbs", "Legal business name on invoice", "gst"),
     "gstin": ("09EJFPP4671A1Z5", "Company GSTIN", "gst"),
@@ -39,23 +36,23 @@ DEFAULTS: dict[str, tuple[Any, str, str]] = {
     "company_state_code": ("09", "GST state code (UP = 09)", "gst"),
     "hsn_default": ("30049011", "Default HSN/SAC code for products", "gst"),
     "invoice_prefix": ("INV", "Invoice number prefix", "gst"),
-    # ---- Plan economics (reference / guardrails) ----
-    "product_cost_percent": (36.0, "Product cost (COGS) as % of turnover", "economics"),
-    "payout_min_percent": (18.0, "Total network payout floor (% of turnover)", "economics"),
-    "payout_max_percent": (22.0, "Total network payout ceiling (% of turnover)", "economics"),
     # ---- Activation / eligibility ----
-    "activation_sp": (50.0, "Self-purchase SP to activate/green an ID", "eligibility"),
-    "repurchase_sp": (25.0, "Monthly repurchase SP to stay active", "eligibility"),
+    "activation_sp": (25.0, "Self-purchase SP (cumulative) to green an ID", "eligibility"),
     # ---- Payout ----
     "payout_min": (500.0, "Minimum wallet balance to request payout (₹)", "payout"),
-    "admin_charge_percent": (5.0, "Admin/processing charge on payout %", "payout"),
     "tds_percent": (5.0, "TDS deduction on payout %", "payout"),
-    "payout_day": ("Monday", "Weekly payout closing day", "payout"),
+    "payout_day": ("Tuesday", "Weekly payout closing day", "payout"),
     # ---- Site ----
     "company_name": ("Arogyam Aradhya", "Company name", "site"),
     "support_phone": ("+91 00000 00000", "Support phone", "site"),
     "support_email": ("support@arogyamaradhya.com", "Support email", "site"),
     "address": ("Varanasi, Uttar Pradesh", "Company address", "site"),
+    "whatsapp_number": ("919839227978", "Company WhatsApp number (orders)", "site"),
+    "whatsapp_message": (
+        "Welcome to Arogyam Aradhya! Here is my order detail and invoice. "
+        "Please guide me for payment to the Admin account so I get all benefits.",
+        "WhatsApp order intro message", "site",
+    ),
 }
 
 

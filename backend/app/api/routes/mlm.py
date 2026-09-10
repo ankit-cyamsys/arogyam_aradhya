@@ -57,8 +57,14 @@ def request_payout(
     if amount > balance:
         raise HTTPException(status_code=400, detail="Insufficient wallet balance")
 
+    # 5% TDS deducted from the gross; member receives the net.
+    tds_pct = Decimal(str(cfg.get(db, "tds_percent", 5)))
+    tds = (amount * tds_pct / Decimal("100")).quantize(Decimal("0.01"))
+    net = (amount - tds).quantize(Decimal("0.01"))
+
     member.wallet_balance = balance - amount
-    req = PayoutRequest(member_id=member.id, amount=amount, status="pending", method="bank")
+    req = PayoutRequest(member_id=member.id, amount=amount, tds=tds, net=net,
+                        status="pending", method="bank")
     db.add(req)
     db.commit()
     db.refresh(req)

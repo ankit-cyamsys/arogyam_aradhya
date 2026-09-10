@@ -33,11 +33,12 @@ def test_order_pending_then_admin_confirm(client, db, product, admin_user):
     rc = client.post(f"/api/admin/orders/{o['id']}/confirm", headers=admin_h)
     assert rc.status_code == 200
 
-    # Now processed: buyer active, sponsor got referral + left SP
+    # Now processed: buyer green (>=25 SP), sponsor got left SP, capping set, NO referral
     db.refresh(buyer); db.refresh(sponsor)
     assert buyer.is_active is True
+    assert float(buyer.capping_limit) == 100000.0     # 60 SP first purchase → ₹1L tier
     assert float(sponsor.total_left_sp) == 60.0
-    assert db.query(CommissionLedger).filter_by(kind="referral").count() == 1
+    assert db.query(CommissionLedger).filter_by(kind="referral").count() == 0
 
     # Double confirm rejected
     assert client.post(f"/api/admin/orders/{o['id']}/confirm", headers=admin_h).status_code == 400

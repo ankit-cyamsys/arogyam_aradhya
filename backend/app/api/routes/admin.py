@@ -224,6 +224,8 @@ def all_payouts(status: str | None = None, db: Session = Depends(get_db)):
             "member_id": m.member_id if m else None,
             "name": m.name if m else None,
             "amount": float(r.amount),
+            "tds": float(r.tds or 0),
+            "net": float(r.net or 0),
             "status": r.status,
             "created_at": r.created_at,
         })
@@ -240,8 +242,8 @@ def act_payout(payout_id: int, action: str, db: Session = Depends(get_db)):
         req.status = "approved"
     elif action == "pay":
         req.status = "paid"
-        if member:
-            member.total_paid = Decimal(str(member.total_paid or 0)) + Decimal(str(req.amount))
+        if member:  # total_paid = net actually paid to the member (after TDS)
+            member.total_paid = Decimal(str(member.total_paid or 0)) + Decimal(str(req.net or req.amount))
     elif action == "reject":
         req.status = "rejected"
         if member:  # refund to wallet

@@ -10,23 +10,31 @@ def _wallet(m):
     return float(m.wallet_balance or 0)
 
 
-# ---------------- Activation ("greening" at 50 SP) ----------------
-def test_activation_at_50_sp(db, product):
+# ---------------- Greening at 25 SP + capping from first purchase ----------------
+def test_greening_at_25_sp(db, product):
     sponsor = make_member(db, "Sponsor", active=True)
     m = make_member(db, "New", sponsor=sponsor, position="L")
-    buy(db, m, product, 49)
-    assert m.is_active is False, "49 SP should NOT activate"
+    buy(db, m, product, 24)
+    assert m.is_active is False, "24 SP should NOT green"
     buy(db, m, product, 1)
-    assert m.is_active is True, "50 SP total should activate (green)"
+    assert m.is_active is True, "25 SP total should green the ID"
 
 
-def test_direct_referral_bonus_500_on_activation(db, product):
+def test_no_direct_referral_bonus(db, product):
     sponsor = make_member(db, "Sponsor", active=True)
     m = make_member(db, "New", sponsor=sponsor, position="L")
-    buy(db, m, product, 50)  # activates
+    buy(db, m, product, 25)  # greens — but there is NO direct-referral bonus anymore
     db.refresh(sponsor)
-    refs = db.query(CommissionLedger).filter_by(member_id=sponsor.id, kind="referral").all()
-    assert len(refs) == 1 and float(refs[0].amount) == 500.0
+    assert db.query(CommissionLedger).filter_by(kind="referral").count() == 0
+
+
+def test_capping_set_by_first_purchase(db, product):
+    for first_sp, expected_cap in [(25, 50000), (50, 100000), (100, 200000), (150, 200000)]:
+        m = make_member(db, f"M{first_sp}")
+        buy(db, m, product, first_sp)
+        db.refresh(m)
+        assert m.is_active is True
+        assert float(m.capping_limit) == expected_cap, f"{first_sp} SP → cap {expected_cap}"
 
 
 # ---------------- Binary matching: ₹10/SP in blocks of 50 ----------------
@@ -90,30 +98,55 @@ def test_rank_detection(db):
     assert ranks_svc.compute_rank(ranks, 500000, 500000)["level"] == 12  # Global Icon
 
 
-def test_update_rank_from_totals(db):
+def test_update_rank_from_matched_sp(db):
     m = make_member(db, "M", active=True)
-    m.total_left_sp = Decimal("2000")
-    m.total_right_sp = Decimal("2500")
+    m.total_matched_sp = Decimal("2500")   # rank is driven by MATCHED SP
     db.commit()
-    assert update_rank(db, m) == 4  # Champion (both >= 2000, right < 4000)
+    assert update_rank(db, m) == 4  # Champion (>=2000, <4000)
 
 
-# ---------------- Rank bonus (admin paid, cumulative, one-time) ----------------
+# ---------------- Rank bonus (admin paid, green-gated, one-time) ----------------
 def test_pay_due_rank_bonuses(db):
     m = make_member(db, "M", active=True)
-    m.total_left_sp = Decimal("1000")
-    m.total_right_sp = Decimal("1000")
+    m.total_matched_sp = Decimal("1000")   # matched SP → Warrior (level 3)
     db.commit()
     update_rank(db, m)
-    assert m.rank_level == 3  # Warrior
+    assert m.rank_level == 3
     paid = pay_due_rank_bonuses(db, m)
-    # levels 1,2,3 => 4000 + 10000 + 20000
-    assert [p["level"] for p in paid] == [1, 2, 3]
+    assert [p["level"] for p in paid] == [1, 2, 3]      # 4000 + 10000 + 20000
     assert _wallet(m) == 34000.0
     assert m.rank_bonus_paid_level == 3
-    # paying again pays nothing (one-time)
-    assert pay_due_rank_bonuses(db, m) == []
+    assert pay_due_rank_bonuses(db, m) == []            # one-time
     assert _wallet(m) == 34000.0
+
+
+def test_rank_bonus_blocked_when_red(db):
+    m = make_member(db, "Red", active=False)   # NOT green
+    m.total_matched_sp = Decimal("1000")
+    db.commit()
+    assert pay_due_rank_bonuses(db, m) == []   # green gate: no bonus while red
+    assert _wallet(m) == 0.0
+
+
+# ---------------- Green gate + capping on weekly close ----------------
+def test_weekly_close_skips_red_members(db):
+    red = make_member(db, "Red", active=False)
+    _seed_carry(db, red, 100, 100)
+    close_payout_period(db, "2026-W40", "Wk40")
+    db.refresh(red)
+    assert _wallet(red) == 0.0                  # red earns nothing
+    assert float(red.left_carry) == 100.0       # SP retained for when they green
+
+
+def test_weekly_capping_limits_payout(db):
+    m = make_member(db, "Cap", active=True)
+    m.capping_limit = Decimal("50000")          # weekly cap ₹50,000 → max 5000 SP
+    _seed_carry(db, m, 8000, 8000)
+    close_payout_period(db, "2026-W41", "Wk41")
+    db.refresh(m)
+    row = db.query(WeeklyPayout).filter_by(member_id=m.id, period="2026-W41").one()
+    assert float(row.closing_sp) == 5000.0 and float(row.payout) == 50000.0
+    assert float(row.cf_left) == 3000.0 and float(row.cf_right) == 3000.0  # excess carries
 
 
 # ---------------- Direct selling: 40% commission on taxable ----------------

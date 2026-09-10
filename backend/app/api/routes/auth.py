@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -104,9 +104,14 @@ def direct_signup(payload: DirectSignupRequest, db: Session = Depends(get_db)):
              dependencies=[Depends(rate_limiter("login", 15, 300))])
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
     ident = payload.username.strip()
+    # Login is case-insensitive: member ID (stored upper) and email (lowered).
     member = db.execute(
         select(Member).where(
-            or_(Member.member_id == ident.upper(), Member.phone == ident, Member.email == ident)
+            or_(
+                Member.member_id == ident.upper(),
+                Member.phone == ident,
+                func.lower(Member.email) == ident.lower(),
+            )
         )
     ).scalar_one_or_none()
     if member is None or not verify_password(payload.password, member.password_hash):

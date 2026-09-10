@@ -52,7 +52,9 @@ class Member(Base, TimestampMixin):
     right_carry: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
     total_left_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
     total_right_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
+    total_matched_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0, server_default="0")  # lifetime matched (drives rank)
     self_purchase_sp: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
+    capping_limit: Mapped[float] = mapped_column(Numeric(14, 2), default=0, server_default="0")  # weekly matching cap, set at greening
 
     wallet_balance: Mapped[float] = mapped_column(Numeric(14, 2), default=0)  # payable earnings
     total_earned: Mapped[float] = mapped_column(Numeric(14, 2), default=0)

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -13,6 +13,29 @@ export default function Cart() {
   const [placing, setPlacing] = useState(false);
   const [done, setDone] = useState(null);
   const [error, setError] = useState("");
+  const [site, setSite] = useState({});
+  const [me, setMe] = useState(null);
+
+  useEffect(() => {
+    api.get("/site/settings").then((r) => setSite(r.data)).catch(() => {});
+    if (auth?.role === "member") api.get("/member/me").then((r) => setMe(r.data)).catch(() => {});
+  }, [auth]);
+
+  const buildWaLink = (order) => {
+    const num = (site.whatsapp_number || "919839227978").replace(/\D/g, "");
+    const addr = [me?.address, me?.city, me?.state, me?.pincode].filter(Boolean).join(", ") || "(as in my profile)";
+    const lines = [
+      site.whatsapp_message || "Welcome to Arogyam Aradhya! Here is my order.",
+      "",
+      `Order: ${order.order_no}`,
+      `Name: ${auth?.name} (${auth?.member_id})`,
+      "Items:",
+      ...order.items.map((it) => `  • ${it.name} x${it.quantity} — ₹${it.price * it.quantity}`),
+      `Total (incl GST): ₹${order.total}  |  ${order.total_sp} SP`,
+      `Delivery address: ${addr}`,
+    ];
+    return `https://wa.me/${num}?text=${encodeURIComponent(lines.join("\n"))}`;
+  };
 
   const checkout = async () => {
     if (!auth || auth.role !== "member") {
@@ -36,19 +59,20 @@ export default function Cart() {
 
   if (done) {
     const ordersLink = auth?.segment === "direct" ? "/seller/orders" : "/dashboard/orders";
+    const waLink = buildWaLink(done);
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
         <div className="text-6xl">🧾</div>
         <h1 className="mt-4 text-2xl font-bold text-herb-800">Order Placed — Payment Pending</h1>
         <p className="mt-2 text-herb-500">Order <b>{done.order_no}</b> · ₹{done.total} · {done.total_sp} SP</p>
         <div className="mx-auto mt-5 max-w-md rounded-2xl bg-marigold-50 p-5 text-left text-sm text-marigold-800 ring-1 ring-marigold-100">
-          <div className="font-semibold">Next step: complete your payment</div>
-          <p className="mt-1">Pay <b>₹{done.total}</b> via UPI / bank transfer (see the Pay page), then share the reference with your sponsor/admin. Your order and points activate once the admin confirms payment.</p>
+          <div className="font-semibold">Next step: send your order on WhatsApp & pay</div>
+          <p className="mt-1">Tap below to send your order + delivery address to us on WhatsApp, then pay <b>₹{done.total}</b> via UPI / bank (Pay page). Your points activate once admin confirms payment.</p>
         </div>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link to="/pay" className="btn-accent">Payment Details</Link>
+          <a href={waLink} target="_blank" rel="noreferrer" className="btn-accent">📱 Send Order on WhatsApp</a>
+          <Link to="/pay" className="btn-outline">Payment Details</Link>
           <button onClick={() => navigate(ordersLink)} className="btn-primary">View Orders</button>
-          <Link to="/products" className="btn-outline">Continue Shopping</Link>
         </div>
       </div>
     );

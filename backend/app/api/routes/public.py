@@ -8,7 +8,8 @@ from app.services import settings_service as cfg
 
 router = APIRouter(prefix="/api/site", tags=["site"])
 
-_PUBLIC_KEYS = {"company_name", "support_phone", "support_email", "address"}
+_PUBLIC_KEYS = {"company_name", "support_phone", "support_email", "address",
+                "whatsapp_number", "whatsapp_message", "gst_rate"}
 
 
 @router.get("/settings")

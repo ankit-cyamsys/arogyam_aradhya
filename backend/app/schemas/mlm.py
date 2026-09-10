@@ -25,6 +25,8 @@ class PayoutRequestOut(BaseModel):
 
     id: int
     amount: float
+    tds: float = 0
+    net: float = 0
     status: str
     method: str | None = None
     reference: str | None = None

@@ -55,7 +55,7 @@ def dashboard(member: Member = Depends(get_current_member), db: Session = Depend
     left = Decimal(str(member.left_carry or 0))
     right = Decimal(str(member.right_carry or 0))
     matching_sp = float(min(left, right))
-    level_recv = _sum(db, member.id, "rank") + _sum(db, member.id, "referral")
+    level_recv = _sum(db, member.id, "rank")
     rank = ranks_svc.rank_by_level(ranks_svc.get_ranks(db), member.rank_level or 0)
 
     return DashboardStats(
@@ -69,7 +69,7 @@ def dashboard(member: Member = Depends(get_current_member), db: Session = Depend
         level_bonus=level_recv,
         level_bonus_received=level_recv,
         self_purchase=float(member.self_purchase_sp or 0),
-        capping_limit=float(cfg.get(db, "daily_capping", 25000)),
+        capping_limit=float(member.capping_limit or 0),
         total_left_sp=float(member.total_left_sp or 0),
         total_right_sp=float(member.total_right_sp or 0),
         wallet_balance=float(member.wallet_balance or 0),

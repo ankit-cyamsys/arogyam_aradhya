@@ -40,7 +40,9 @@ class PayoutRequest(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     member_id: Mapped[int] = mapped_column(ForeignKey("members.id"), index=True, nullable=False)
-    amount: Mapped[float] = mapped_column(Numeric(12, 2), default=0)
+    amount: Mapped[float] = mapped_column(Numeric(12, 2), default=0)          # gross requested
+    tds: Mapped[float] = mapped_column(Numeric(12, 2), default=0, server_default="0")   # TDS deducted
+    net: Mapped[float] = mapped_column(Numeric(12, 2), default=0, server_default="0")   # payable to member
     status: Mapped[str] = mapped_column(String(20), default="pending")  # pending/approved/paid/rejected
     method: Mapped[str | None] = mapped_column(String(30))
     reference: Mapped[str | None] = mapped_column(String(80))

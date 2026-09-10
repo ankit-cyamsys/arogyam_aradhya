@@ -83,10 +83,10 @@ Two earning portals on one shared product catalog + one admin panel:
 **The greening flow (confirmed by owner 2026-09-09):**
 
 1. A visitor **signs up** under a sponsor (placement L/R) → account starts **RED (inactive)**.
-2. They **shop** and place an order. The order (with **DP prices, a GST invoice, and the delivery address**) is **sent to WhatsApp** for the company. 🔜 *(WhatsApp send — to build, see §14)*
+2. They **shop** and place an order. The order (with **DP prices, a GST invoice, and the delivery address**) is **sent to WhatsApp** for the company. 🔜 *(WhatsApp send — to build, see §14)* yes available -- +919839227978
 3. The member **pays** (UPI / bank). When the **admin confirms payment received**, the order is processed.
 4. **Greening rule:** an ID turns **GREEN only when the member's cumulative self-purchase reaches ≥ 25 SP** (`activation_sp = 25`). Example: buy 10 SP → still RED; the admin will **not** green the ID until total shopping reaches 25 SP.
-5. **First purchase decides the capping** (max payout limit) for that ID — set at greening from the joining/first-purchase amount. See §9a. ❓ *(exact SP→capping mapping pending business)*
+5. **First purchase decides the capping** (max payout limit) for that ID — set at greening from the joining/first-purchase amount. See §9a. here is details for 25 SP - 50000, 50 SP - 100000, 100 SP and above - 200000 MAX capping amnount weekly.
 
 **SP counts in the tree regardless of green status (confirmed):**
 - The moment a member's order is confirmed, their **SP propagates up the binary tree** and contributes to every ancestor's leg — so **matching flows to the parent/upline** even if the buyer themselves is not yet green. A member can even build their own 100:100 downline.
@@ -95,14 +95,14 @@ Two earning portals on one shared product catalog + one admin panel:
 - A member **personally receives Matching Bonus and Level Bonus only if their OWN ID is GREEN** (≥ 25 SP self-purchase). While RED, their own SP keeps accumulating (carry forward) but no matching/level payout is credited to them until they green.
 
 **Built today (🟡 to be aligned to the above):**
-- Green flag = `is_active`. Currently flips green at `activation_sp` SP (change **50 → 25**) on admin order-confirm; sponsor gets **₹500 direct-referral** on green.
+- Green flag = `is_active`. Currently flips green at `activation_sp` SP (change **50 → 25**) on admin order-confirm; no sponsor amount on green.
 - **To implement:** (a) threshold 25 SP; (b) gate matching **and** level-bonus payout on earner-green; (c) capping set from first purchase.
 
-**❓ Still open (for business):**
-1. Exact **SP → capping ₹** mapping (25 SP → ₹?, 50 → ₹?, 100 → ₹?). Reference showed a ₹50,000 capping.
-2. **Time window** to green after joining (does a RED ID ever lapse)?
-3. **Monthly repurchase** to stay green/earning? SP + period + penalty if missed?
-4. Joining **packages** (25/50/100 SP = ₹3,000/6,000/12,000) — is greening tied to buying a package, or any products totalling ≥25 SP?
+
+1. Exact **SP → capping ₹** mapping (for 25 SP - 50000, 50 SP - 100000, 100 SP and above - 200000 MAX capping amnount weekly.). Reference showed a ₹50,000 capping.
+2. **Time window** to green after joining (does a RED ID ever lapse)- Never
+3. **Monthly repurchase** to stay green/earning? SP + period + penalty if missed - nothing
+4. Joining **packages** (25/50/100 SP = ₹3,000/6,000/12,000) — is greening tied to buying a package, or any products totalling ≥25 SP - no one can join with 1sp also but for id greening 25sp will require. 
 
 ---
 
@@ -111,7 +111,7 @@ Two earning portals on one shared product catalog + one admin panel:
 - Each member has a **sponsor** (who referred them → drives referral/level) and a **placement parent + position (L/R)**.
 - New signup **spills over** down the chosen leg to the first open slot under the sponsor.
 - `My Team`: left/right member counts, left/right **active** counts, parent, 3-level genealogy view.
-- ❓ Confirm placement rule: always spillover to outermost open slot on chosen leg? Or sponsor picks exact position? Any auto-balancing?
+- Confirm placement rule: always spillover to outermost open slot on chosen leg? Or sponsor picks exact position? Any auto-balancing? - Yes spilover which ever leg is free automatically. 
 
 ---
 
@@ -119,7 +119,7 @@ Two earning portals on one shared product catalog + one admin panel:
 
 - Each product has an **SP** value. An order's `total_sp` = Σ(product.sp × qty).
 - On a **confirmed** order: buyer's `self_purchase_sp` increases; SP propagates up **every ancestor's** L or R leg (both `*_carry` for matching and lifetime `total_*_sp` for rank).
-- 1 SP ≈ ₹10 for matching payout (see §9). ❓ Confirm SP→₹ for packages (100 SP pack = ₹12,000 in the plan sheet implies ₹120/SP business value — this is separate from the ₹10/SP matching rate).
+- 1 SP ≈ ₹10 for matching payout (see §9). ❓ Confirm SP→₹ for packages (100 SP pack = ₹12,000 in the plan sheet implies ₹120/SP business value — this is separate from the ₹10/SP matching rate).-- according to product not 
 
 ---
 
@@ -134,10 +134,10 @@ Two earning portals on one shared product catalog + one admin panel:
 ### 9a. Capping ✅ principle / ❓ values
 - The member's **first purchase decides their capping** (a maximum payout limit for the ID), set at greening.
 - Once capping is set, the ₹10/SP-in-₹500-blocks payout math applies within that cap.
-- ❓ Business to give the exact **first-purchase SP → capping ₹** table.
+- ❓ Business to give the exact **first-purchase SP → capping ₹** table.-- for 25 SP - 50000, 50 SP - 100000, 100 SP and above - 200000 MAX capping amnount weekly.
 
 **Other open:**
-- ❓ Should the weekly close run **automatically** on a fixed weekday (cron), not just manual?
+- ❓ Should the weekly close run **automatically** on a fixed weekday (cron), not just manual? -- manually on tuesday
 
 ---
 
@@ -161,18 +161,18 @@ Two earning portals on one shared product catalog + one admin panel:
 |12|Global Icon|5,00,000|25,00,000|₹20L + Dubai|
 
 - Rank auto-detected for display; the **one-time cash bonus is paid manually by admin** ("Pay Rank Bonus"), mirroring the reference.
-- ❓ Confirm: is rank purely from cumulative total SP each leg, or matched SP, or does admin approve rank? (Reference stored a `level` field — admin-set?)
-- ❓ Are the "+₹15k Mobile / Bike / Car / Gold" amounts **cash funds** too, or physical gifts fulfilled offline? (Currently only the first number is cash; rest is recognition text.)
-- ❓ Rank maintenance/repurchase to keep a rank?
+- ❓ Confirm: is rank purely from cumulative total SP each leg, or matched SP, or does admin approve rank? (Reference stored a `level` field — admin-set?)-- matched SP only
+- ❓ Are the "+₹15k Mobile / Bike / Car / Gold" amounts **cash funds** too, or physical gifts fulfilled offline? (Currently only the first number is cash; rest is recognition text.) -- physical gifts
+- ❓ Rank maintenance/repurchase to keep a rank? -- nothing
 
 ---
 
 ## 11. Level Bonus & Direct Referral ✅ (present, green-gated) / ❓ (formula)
 
 - **Level Bonus is an active income** and, like matching, is **paid only when the earner's own ID is green** (§6). *(to enable + green-gate)*
-- ❓ **Exact level-bonus definition needed from business:** is it the **career-rank achievement bonus** (§10 — the "Level Bonus" page in the reference), or a separate **generation/level income** (a %/amount on each level of downline SP/purchases)? Give the level→amount/percent table if the latter.
-- **Direct referral:** ₹500 to the sponsor when a directly-sponsored member greens (one-time). ❓ ₹500 per direct, only first, or per-leg (old sheet showed "Direct Ref 1/2 = ₹500")?
-- ❓ Any **repurchase/retail** income, **pool/turnover** bonus, or **leadership override** beyond matching + level + rank + referral?
+- ❓ **Exact level-bonus definition needed from business:** is it the **career-rank achievement bonus** (§10 — the "Level Bonus" page in the reference), or a separate **generation/level income** (a %/amount on each level of downline SP/purchases)? Give the level→amount/percent table if the latter.--- career-rank achievement bonus will be staying with them
+- **Direct referral:** ₹500 to the sponsor when a directly-sponsored member greens (one-time). ❓ ₹500 per direct, only first, or per-leg (old sheet showed "Direct Ref 1/2 = ₹500")? -- no direct referal bonus it's all included already 
+- ❓ Any **repurchase/retail** income, **pool/turnover** bonus, or **leadership override** beyond matching + level + rank + referral? - nothing all already included 
 
 ---
 
@@ -181,7 +181,7 @@ Two earning portals on one shared product catalog + one admin panel:
 - Standalone agent (optional referral code, no tree). Greens on first purchase.
 - Earns **40%** (`dsa_percent`) of the **taxable value (DP)** on their own confirmed orders → wallet.
 - Dashboard: total sales, earnings, wallet, orders. Own orders + GST invoices.
-- ❓ Confirm 40% flat, no downline/override for direct sellers.
+- ❓ Confirm 40% flat, no downline/override for direct sellers.-- no
 
 ---
 
@@ -189,17 +189,17 @@ Two earning portals on one shared product catalog + one admin panel:
 
 - 28 products (SP/MRP/DP from your list) + 4 offer packages (₹5k/12.5k/25k/50k). Categories: Immunity, Digestive, Skin Care, Wellness, Personal Care, Home Care, Offers.
 - Admin CRUD (name, category, MRP, DP, cost, SP, stock, image, active, offer).
-- ❓ Offer-package SP values are **estimates** (40/100/200/400) — give real values.
+- ❓ Offer-package SP values are **estimates** (40/100/200/400) — give real values. -- currently not decided but will create offers and add banners 
 
 ---
 
 ## 14. Orders & Payment (Admin-Confirm + WhatsApp) ✅ / 🔜
 
 - Member places order → **status `pending` / `unpaid`**. No SP/commissions yet.
-- **Order goes to WhatsApp** for the company with **DP prices, the GST invoice, and the delivery address** (confirmed flow). 🔜 *to build — via a `wa.me` deep link and/or WhatsApp notification.* ❓ company WhatsApp number + exact message format.
-- Member **pays via UPI/bank** (manual) per the Pay page. ❓ Should the member submit a **payment reference** for the admin to match?
+- **Order goes to WhatsApp** for the company with **DP prices, the GST invoice, and the delivery address** (confirmed flow). 🔜 *to build — via a `wa.me` deep link and/or WhatsApp notification.* ❓ company WhatsApp number + exact message format. - welcome to Arogyam Ardhya here is your order detail and invoice please pay to Admin Account and Get all benifits. 
+- Member **pays via UPI/bank** (manual) per the Pay page. ❓ Should the member submit a **payment reference** for the admin to match? -- manully admin will varify.
 - Admin **Confirms Payment** → SP propagation, greening (if ≥25 SP), referral, DSA commission all run once. Or **Cancels** (only while unpaid).
-- No online gateway (owner's choice).
+- No online gateway (owner's choice). -- no online gateway as of now
 
 ---
 
@@ -207,15 +207,15 @@ Two earning portals on one shared product catalog + one admin panel:
 
 - GST **18%**, **exclusive** (added on top of DP at checkout). GSTIN **09EJFPP4671A1Z5**, UP (state code 09), HSN default 30049011.
 - Tax invoice per order: CGST+SGST (intra-state) or IGST (inter-state), amount-in-words, printable.
-- Commissions computed on **taxable value**, not GST-inclusive total.
-- ❓ Per-product HSN/GST rate (currently one default rate + HSN for all)?
+- Commissions computed on **taxable value**, not GST-inclusive total. flat rate 5% gst
+- ❓ Per-product HSN/GST rate (currently one default rate + HSN for all)? - default 5 % 
 
 ---
 
 ## 16. KYC ✅
 
 - 5 upload slots: profile photo, Aadhaar front/back, PAN front/back. Stored in DB (≤5MB, JPG/PNG/WEBP/PDF). Member uploads/replaces + previews; admin views. **No verification workflow** (per your instruction).
-- ❓ Should greening/withdrawal require KYC uploaded/verified?
+- ❓ Should greening/withdrawal require KYC uploaded/verified? -- not neccessary
 
 ---
 
@@ -223,14 +223,14 @@ Two earning portals on one shared product catalog + one admin panel:
 
 - Earnings (matching + rank + referral + DSA) credit `wallet_balance`.
 - Member requests withdrawal (min ₹500 `payout_min`); admin approves → pays → rejects (refunds).
-- Settings exist for `admin_charge_percent` (5%) and `tds_percent` (5%) but ❓ **not yet applied** to withdrawals — confirm the deduction rules (TDS %, admin charge %, on what).
+- Settings exist for `admin_charge_percent` (5%) and `tds_percent` (5%) but ❓ **not yet applied** to withdrawals — confirm the deduction rules (TDS %, admin charge %, on what). -- only 5% tds nothing else.
 
 ---
 
 ## 18. Admin Panel ✅
 
 Overview (members, active, pending orders, confirmed revenue, pending payouts) · Orders (confirm/cancel) · Products (CRUD) · Members (block, rank bonus, KYC, reset password) · Payouts (weekly close + withdrawal requests) · MLM Settings (all rates) · Weekly Close.
-- ❓ Multiple admin roles/permissions needed, or single admin fine?
+- ❓ Multiple admin roles/permissions needed, or single admin fine? -- single admin.
 
 ---
 
@@ -241,20 +241,19 @@ Overview (members, active, pending orders, confirmed revenue, pending payouts) �
 | matching_per_sp | 10 | ₹ per matched SP |
 | matching_block_sp | 50 | matching block size |
 | daily_capping | 0 | matching cap (0=none) |
-| direct_referral_bonus | 500 | ₹ per direct referral |
+| direct_referral_bonus | 500 | ₹ per direct referral | ---not there we have removed it 
 | dsa_percent | 40 | direct-seller commission % |
-| activation_sp | **25** | SP (cumulative self-purchase) to green an ID |
-| repurchase_sp | 25 | (unused) monthly repurchase SP — ❓ rules |
-| capping_by_first_purchase | ❓ | first-purchase SP → capping ₹ table (pending) |
-| gst_rate | 18 | GST % |
+| activation_sp | **25** | SP (cumulative self-purchase) to green an ID | 
+| repurchase_sp | 25 | (unused) monthly repurchase SP — ❓ rules | -- nothing
+| capping_by_first_purchase | ❓ | first-purchase SP → capping ₹ table (pending) | --- for 25 SP - 50000, 50 SP - 100000, 100 SP and above - 200000 MAX capping amnount weekly.
+| gst_rate | 5 | GST % |
 | price_gst_inclusive | false | DP is GST-exclusive |
 | gstin | 09EJFPP4671A1Z5 | company GSTIN |
 | payout_min | 500 | min withdrawal ₹ |
-| admin_charge_percent | 5 | (not yet applied) |
-| tds_percent | 5 | (not yet applied) |
+| tds_percent | 5 |
 | level_bonus_percent | [] | level bonus — **to be enabled**, formula pending (§11) |
 
-Ranks live in code (`app/services/ranks.py`) — ❓ move to editable settings?
+Ranks live in code (`app/services/ranks.py`) — ❓ move to editable settings? - yes
 
 ---
 
@@ -283,14 +282,14 @@ Ranks live in code (`app/services/ranks.py`) — ❓ move to editable settings?
 - Order sent to WhatsApp with DP + invoice + delivery address.
 
 ### ❓ Pending from business (kept as ❓ in the doc)
-1. **Capping table** — first-purchase SP → capping ₹ (§9a).
+1. **Capping table** — first-purchase SP → capping ₹ (§9a). --for 25 SP - 50000, 50 SP - 100000, 100 SP and above - 200000 MAX capping amnount weekly.
 2. **Level-bonus definition/rates** — rank bonus or generation income? (§11).
 3. **Direct-referral** exact rule — per direct / first only / per-leg (§11).
 4. **Repurchase/maintenance** to stay green & keep rank (§6, §10).
 5. **Greening time window** / ID lapse (§6).
 6. **TDS 5% + admin charge 5%** on withdrawals — how applied (§17).
 7. **Rank** — auto vs admin-approved; are +mobile/bike/car amounts cash or gifts (§10).
-8. **WhatsApp** number + message format (§14).
+8. **WhatsApp** number + message format (§14). +919839227978
 9. **Offer-package SP** real values (§13); **per-product HSN/GST** (§15).
 10. Auto weekly close (cron)? (§9); any other income (pool/turnover/leadership)?
 11. 🔜 Offers / target-promotions section (deferred).
