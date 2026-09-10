@@ -22,7 +22,7 @@ export default function Cart() {
   }, [auth]);
 
   const buildWaLink = (order) => {
-    const num = (site.whatsapp_number || "919839227978").replace(/\D/g, "");
+    const num = String(site.whatsapp_number || "919839227978").replace(/\D/g, "");
     const addr = [me?.address, me?.city, me?.state, me?.pincode].filter(Boolean).join(", ") || "(as in my profile)";
     const lines = [
       site.whatsapp_message || "Welcome to Arogyam Aradhya! Here is my order.",
