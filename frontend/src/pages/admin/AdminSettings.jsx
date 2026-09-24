@@ -11,8 +11,7 @@ const GROUPS = {
 };
 
 const META = {
-  matching_per_sp: "₹ per matched SP (₹10 → 50 SP = ₹500)",
-  matching_block_sp: "Matching block size (SP)",
+  matching_per_sp: "₹ per matched SP (1:1 — 25:25 = ₹250)",
   matching_ratio: "Left:Right ratio",
   capping_25sp: "Weekly cap ₹ (first purchase ≥25 SP)",
   capping_50sp: "Weekly cap ₹ (first purchase ≥50 SP)",
@@ -38,7 +37,7 @@ const META = {
 };
 
 const GROUP_OF = {
-  matching_per_sp: "matching", matching_block_sp: "matching", matching_ratio: "matching",
+  matching_per_sp: "matching", matching_ratio: "matching",
   capping_25sp: "matching", capping_50sp: "matching", capping_100sp: "matching",
   gst_rate: "gst", price_gst_inclusive: "gst", company_legal_name: "gst", gstin: "gst",
   company_address: "gst", company_state: "gst", company_state_code: "gst",

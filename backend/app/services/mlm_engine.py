@@ -122,18 +122,14 @@ def compute_matching(db: Session, member: Member, commit: bool = True) -> dict:
     right = _d(member.right_carry)
     matched = min(left, right)
 
-    # Plan: ₹10 per matched SP, paid only in blocks of 50 SP (50 SP = ₹500).
-    # The unmatched remainder carries forward. Matches the reference payout register.
+    # 1:1 matching: ₹10 per matched SP on ANY matched amount (25:25 = ₹250,
+    # 50:50 = ₹500). The unmatched leg remainder carries forward. The ₹500
+    # figure is only the minimum WITHDRAWAL, not the matching calculation.
     per_sp = _d(cfg.get(db, "matching_per_sp", 10))
-    block = _d(cfg.get(db, "matching_block_sp", 50))
-    capping = _d(cfg.get(db, "daily_capping", 0))
 
-    if block > 0:
-        closing = (matched // block) * block   # largest multiple of 50 <= matched
-    else:
-        closing = matched
+    closing = matched
     gross = (closing * per_sp).quantize(Decimal("0.01"))
-    payout = min(gross, capping) if capping > 0 else gross
+    payout = gross
 
     result = {
         "matched_sp": float(matched),
@@ -162,14 +158,14 @@ def compute_matching(db: Session, member: Member, commit: bool = True) -> dict:
 
 
 def close_payout_period(db: Session, period: str, week_label: str | None = None) -> dict:
-    """Weekly close: match every member's carry (₹10/SP in 50-blocks) and write
-    one payout-register row per member who had activity. Returns a summary.
+    """Weekly close: 1:1 match every green member's carry at ₹10 per matched SP
+    (any amount) and write one payout-register row per active member. Weekly cap
+    applies; excess carries forward.
     """
     from sqlalchemy import select
     from app.models import WeeklyPayout
 
     per_sp = _d(cfg.get(db, "matching_per_sp", 10))
-    block = _d(cfg.get(db, "matching_block_sp", 50))
 
     members = db.execute(select(Member).where(Member.segment == "mlm")).scalars().all()
     rows = 0
@@ -185,13 +181,13 @@ def close_payout_period(db: Session, period: str, week_label: str | None = None)
         wk_left = _d(m.week_left_sp)
         wk_right = _d(m.week_right_sp)
         matched = min(left, right)
-        closing = (matched // block) * block if block > 0 else matched
+        closing = matched   # 1:1, no block flooring
 
         # Weekly capping: limit matched SP so payout ≤ the member's capping.
         # Excess matched SP stays as carry-forward for a later week.
         cap = _d(m.capping_limit)
         if cap > 0 and per_sp > 0:
-            max_closing = ((cap / per_sp) // block) * block
+            max_closing = cap / per_sp
             if closing > max_closing:
                 closing = max_closing
 

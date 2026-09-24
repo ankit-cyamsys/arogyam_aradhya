@@ -17,8 +17,7 @@ from app.models import Setting
 # key -> (default_value, label, group)
 DEFAULTS: dict[str, tuple[Any, str, str]] = {
     # ---- Binary matching (MLM) ----
-    "matching_per_sp": (10.0, "₹ per matched SP (1 SP : 1 SP = ₹10 → 50 SP = ₹500)", "matching"),
-    "matching_block_sp": (50.0, "Matching pays in blocks of this many SP (min 50)", "matching"),
+    "matching_per_sp": (10.0, "₹ per matched SP (1:1 — 25:25 = ₹250, 50:50 = ₹500)", "matching"),
     "matching_ratio": ("1:1", "Left:Right matching ratio", "matching"),
     # Weekly matching capping tiers by the member's first (greening) purchase SP.
     "capping_25sp": (50000.0, "Weekly matching cap (₹) if first purchase ≥25 SP", "matching"),

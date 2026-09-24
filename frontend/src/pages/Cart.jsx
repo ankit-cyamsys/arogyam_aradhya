@@ -21,6 +21,15 @@ export default function Cart() {
     if (auth?.role === "member") api.get("/member/me").then((r) => setMe(r.data)).catch(() => {});
   }, [auth]);
 
+  // When an order is placed, auto-open WhatsApp with the order (best-effort;
+  // a prominent button remains if the browser blocks the popup).
+  useEffect(() => {
+    if (done) {
+      try { window.open(buildWaLink(done), "_blank", "noopener"); } catch { /* button fallback */ }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done]);
+
   const buildWaLink = (order) => {
     const num = String(site.whatsapp_number || "919839227978").replace(/\D/g, "");
     const addr = [me?.address, me?.city, me?.state, me?.pincode].filter(Boolean).join(", ") || "(as in my profile)";

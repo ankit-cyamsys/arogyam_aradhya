@@ -65,7 +65,7 @@ export default function Dashboard() {
       </div>
 
       <div className="card p-5 text-sm text-herb-500">
-        💡 Binary matching is settled <b>weekly</b> at ₹10 per matched SP, in blocks of 50 SP.
+        💡 Binary matching is settled <b>weekly</b> at <b>₹10 per matched SP (1:1)</b> — e.g. 25:25 = ₹250, 50:50 = ₹500.
         Unmatched SP carries forward. See the <b>Payout</b> tab for your weekly register.
       </div>
     </div>

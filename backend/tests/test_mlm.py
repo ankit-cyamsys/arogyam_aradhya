@@ -46,45 +46,36 @@ def _seed_carry(db, member, left, right, wk_left=None, wk_right=None):
     db.commit()
 
 
-def test_matching_50_50_pays_500(db, product):
+def test_matching_1to1_any_amount(db, product):
+    # 25:25 -> ₹250, 50:50 -> ₹500 (₹10 per matched SP, no 50-block flooring)
     m = make_member(db, "M", active=True)
-    _seed_carry(db, m, 50, 50)
+    _seed_carry(db, m, 25, 25)
     res = compute_matching(db, m, commit=True)
-    assert res["closing_sp"] == 50.0
-    assert res["payout"] == 500.0
+    assert res["closing_sp"] == 25.0 and res["payout"] == 250.0
     assert float(m.left_carry) == 0.0 and float(m.right_carry) == 0.0
 
-
-def test_matching_blocks_and_carry_forward(db, product):
-    m = make_member(db, "M", active=True)
-    _seed_carry(db, m, 130, 130)
-    res = compute_matching(db, m, commit=True)
-    assert res["closing_sp"] == 100.0   # 130 -> 2 blocks of 50
-    assert res["payout"] == 1000.0
-    assert float(m.left_carry) == 30.0 and float(m.right_carry) == 30.0
+    m2 = make_member(db, "M2", active=True)
+    _seed_carry(db, m2, 50, 50)
+    res2 = compute_matching(db, m2, commit=True)
+    assert res2["closing_sp"] == 50.0 and res2["payout"] == 500.0
 
 
-def test_matching_below_50_pays_nothing(db, product):
+def test_matching_partial_and_carry_forward(db, product):
     m = make_member(db, "M", active=True)
     _seed_carry(db, m, 45, 200)
     res = compute_matching(db, m, commit=True)
-    assert res["closing_sp"] == 0.0 and res["payout"] == 0.0
-    assert float(m.left_carry) == 45.0 and float(m.right_carry) == 200.0
+    assert res["closing_sp"] == 45.0 and res["payout"] == 450.0   # min(45,200) x ₹10
+    assert float(m.left_carry) == 0.0 and float(m.right_carry) == 155.0  # excess carries
 
 
 # ---------------- Weekly close writes a register row ----------------
 def test_weekly_close_register(db, product):
     m = make_member(db, "M", active=True)
-    _seed_carry(db, m, 82.5, 45.7, wk_left=5.25, wk_right=45.70)
-    summary = close_payout_period(db, "2026-W36", "28 Aug 2026")
-    row = db.query(WeeklyPayout).filter_by(member_id=m.id).one()
-    assert float(row.closing_sp) == 0.0   # min(82.5,45.7)=45.7 -> below 50 block
-    # give both legs enough and re-close
     _seed_carry(db, m, 120, 60, wk_left=120, wk_right=60)
     close_payout_period(db, "2026-W37", "04 Sep 2026")
-    row2 = db.query(WeeklyPayout).filter_by(member_id=m.id, period="2026-W37").one()
-    assert float(row2.closing_sp) == 50.0 and float(row2.payout) == 500.0
-    assert float(row2.cf_left) == 70.0 and float(row2.cf_right) == 10.0
+    row = db.query(WeeklyPayout).filter_by(member_id=m.id, period="2026-W37").one()
+    assert float(row.closing_sp) == 60.0 and float(row.payout) == 600.0   # min(120,60) x ₹10
+    assert float(row.cf_left) == 60.0 and float(row.cf_right) == 0.0
     assert float(m.week_left_sp) == 0.0  # week counters reset
 
 
