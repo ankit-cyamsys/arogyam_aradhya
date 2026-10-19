@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import api from "../api";
 
 export default function AuthModal({ open, mode: initialMode = "login", onClose }) {
   const { login, signup } = useAuth();
@@ -18,6 +19,31 @@ export default function AuthModal({ open, mode: initialMode = "login", onClose }
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [legs, setLegs] = useState({ left_available: true, right_available: true });
+
+  // Only offer legs that are actually still open under this sponsor; auto-pick
+  // the remaining one when just one side is free.
+  useEffect(() => {
+    const sponsorId = form.sponsor_id.trim();
+    if (mode !== "signup" || !sponsorId) {
+      setLegs({ left_available: true, right_available: true });
+      return;
+    }
+    const t = setTimeout(() => {
+      api.get(`/auth/sponsor/${encodeURIComponent(sponsorId)}/legs`)
+        .then((r) => setLegs(r.data))
+        .catch(() => setLegs({ left_available: true, right_available: true }));
+    }, 400);
+    return () => clearTimeout(t);
+  }, [form.sponsor_id, mode]);
+
+  useEffect(() => {
+    if (form.position === "L" && !legs.left_available && legs.right_available) {
+      setForm((f) => ({ ...f, position: "R" }));
+    } else if (form.position === "R" && !legs.right_available && legs.left_available) {
+      setForm((f) => ({ ...f, position: "L" }));
+    }
+  }, [legs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!open) return null;
 
@@ -82,8 +108,10 @@ export default function AuthModal({ open, mode: initialMode = "login", onClose }
                 <div>
                   <label className="label">Leg</label>
                   <select className="input" value={form.position} onChange={update("position")}>
-                    <option value="L">Left</option>
-                    <option value="R">Right</option>
+                    {/* Both open (or both taken, where spillover decides) -> offer both.
+                        Only one open -> that's the only choice. */}
+                    {(legs.left_available || !legs.right_available) && <option value="L">Left</option>}
+                    {(legs.right_available || !legs.left_available) && <option value="R">Right</option>}
                   </select>
                 </div>
               </div>
