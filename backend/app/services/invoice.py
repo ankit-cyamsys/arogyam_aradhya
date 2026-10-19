@@ -103,6 +103,7 @@ def build_invoice(db: Session, order: Order) -> dict:
 
     return {
         "invoice_no": f"{s.get('invoice_prefix', 'INV')}-{order.order_no}",
+        "order_no": order.order_no,
         "date": order.created_at.date().isoformat() if order.created_at else None,
         "seller": {
             "name": s.get("company_legal_name", "Arogyam Aradhya Herbs"),

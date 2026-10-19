@@ -5,7 +5,7 @@ const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractio
 
 export default function AdminOrders() {
   const [rows, setRows] = useState([]);
-  const [filter, setFilter] = useState("pending");
+  const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(0);
 
   const load = () => api.get("/admin/orders", { params: { status: filter || undefined } }).then((r) => setRows(r.data));

@@ -31,6 +31,18 @@ def _token(member: Member) -> TokenResponse:
     )
 
 
+@router.get("/sponsor/{sponsor_id}/legs")
+def sponsor_legs(sponsor_id: str, db: Session = Depends(get_db)):
+    """Which direct legs are still open under a sponsor, for the signup form's Leg picker."""
+    sponsor = db.execute(
+        select(Member).where(Member.member_id == sponsor_id.strip().upper())
+    ).scalar_one_or_none()
+    if sponsor is None or sponsor.segment != "mlm":
+        raise HTTPException(status_code=404, detail="Sponsor ID not found")
+    kids = tree.children(db, sponsor)
+    return {"left_available": kids["L"] is None, "right_available": kids["R"] is None}
+
+
 @router.post("/signup", response_model=TokenResponse,
              dependencies=[Depends(rate_limiter("signup", 10, 600))])
 def signup(payload: SignupRequest, db: Session = Depends(get_db)):

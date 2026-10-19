@@ -27,7 +27,7 @@ DEFAULTS: dict[str, tuple[Any, str, str]] = {
     "dsa_percent": (40.0, "Direct-seller (DSA) commission % of sale (on taxable value)", "direct"),
     # ---- GST / Invoicing ----
     "gst_rate": (5.0, "GST rate % on products", "gst"),
-    "price_gst_inclusive": (False, "Are DP/MRP prices GST-inclusive?", "gst"),
+    "price_gst_inclusive": (True, "Are DP/MRP prices GST-inclusive?", "gst"),
     "company_legal_name": ("Arogyam Aradhya Herbs", "Legal business name on invoice", "gst"),
     "gstin": ("09EJFPP4671A1Z5", "Company GSTIN", "gst"),
     "company_address": ("Varanasi, Uttar Pradesh", "Company address on invoice", "gst"),
@@ -46,7 +46,7 @@ DEFAULTS: dict[str, tuple[Any, str, str]] = {
     "support_phone": ("+91 00000 00000", "Support phone", "site"),
     "support_email": ("support@arogyamaradhya.com", "Support email", "site"),
     "address": ("Varanasi, Uttar Pradesh", "Company address", "site"),
-    "whatsapp_number": ("919839227978", "Company WhatsApp number (orders)", "site"),
+    "whatsapp_number": ("919532821223", "Company WhatsApp number (orders)", "site"),
     "whatsapp_message": (
         "Welcome to Arogyam Aradhya! Here is my order detail and invoice. "
         "Please guide me for payment to the Admin account so I get all benefits.",

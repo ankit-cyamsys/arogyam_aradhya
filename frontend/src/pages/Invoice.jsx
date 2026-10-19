@@ -44,6 +44,7 @@ export default function Invoice() {
             <div className="text-right">
               <div className="text-lg font-bold text-herb-800">TAX INVOICE</div>
               <div className="text-sm text-herb-600">{inv.invoice_no}</div>
+              <div className="text-xs font-semibold text-herb-700">Order ID: {inv.order_no}</div>
               <div className="text-xs text-herb-500">Date: {inv.date}</div>
             </div>
           </div>
@@ -121,7 +122,7 @@ export default function Invoice() {
             <div>This is a computer-generated invoice.</div>
             <div className="text-center">
               <div className="mb-6">For {inv.seller.name}</div>
-              <div className="border-t border-herb-300 pt-1">Authorised Signatory</div>
+              <div className="border-t border-herb-300 pt-1">Signature</div>
             </div>
           </div>
         </div>
