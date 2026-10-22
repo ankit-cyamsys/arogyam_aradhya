@@ -19,7 +19,7 @@ DEFAULT_RANKS = [
     {"level": 3, "name": "Warrior", "tier": "BRONZE", "sp": 1000, "bonus": 20000, "reward": "Tablet"},
     {"level": 4, "name": "Champion", "tier": "SILVER", "sp": 2000, "bonus": 50000, "reward": "Mobile Fund + Jim Corbett 2N/3D"},
     {"level": 5, "name": "Master", "tier": "SILVER", "sp": 4000, "bonus": 90000, "reward": "Bike Fund + Agra Tour 2N/3D"},
-    {"level": 6, "name": "Commander", "tier": "GOLD", "sp": 8000, "bonus": 750000, "reward": "Laptop & Projector Fund + Shimla 2N/3D with Spouse"},
+    {"level": 6, "name": "Commander", "tier": "GOLD", "sp": 8000, "bonus": 120000, "reward": "Laptop & Projector Fund + Shimla 2N/3D with Spouse"},
     {"level": 7, "name": "Royal Executive", "tier": "GOLD", "sp": 16000, "bonus": 250000, "reward": "Bullet Fund + Gangtok 2N/3D with Spouse"},
     {"level": 8, "name": "Imperial Leader", "tier": "PLATINUM", "sp": 32500, "bonus": 400000, "reward": "Gold Fund + Goa 2N/3D with Spouse"},
     {"level": 9, "name": "Diamond", "tier": "PLATINUM", "sp": 65000, "bonus": 600000, "reward": "Car Fund + Bangkok & Pattaya 2N/3D"},
