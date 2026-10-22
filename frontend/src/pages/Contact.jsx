@@ -1,16 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageHeader from "../components/PageHeader";
+import api from "../api";
 
 export default function Contact() {
   const [sent, setSent] = useState(false);
+  const [site, setSite] = useState({});
+  useEffect(() => {
+    api.get("/site/settings").then((r) => setSite(r.data)).catch(() => {});
+  }, []);
+
   return (
     <div>
       <PageHeader icon="✉️" title="Contact Us" subtitle="We'd love to hear from you. Reach out any time." />
       <div className="mx-auto grid max-w-5xl gap-8 px-4 py-16 md:grid-cols-2">
         <div className="space-y-4">
-          {[["📞", "Phone", "+91 00000 00000"],
-            ["✉️", "Email", "support@arogyamaradhya.com"],
-            ["📍", "Address", "Varanasi, Uttar Pradesh, India"],
+          {[["📞", "Phone", site.support_phone || "+91 95328 21223"],
+            ["✉️", "Email", site.support_email || "adminarogyamaradhya@gmail.com"],
+            ["📍", "Address", site.address || "Aradhya Bhavan, Jakhania, Gobind, Ghazipur, Uttar Pradesh"],
             ["🕒", "Hours", "Mon–Sat: 9AM – 6PM"]].map(([i, t, d]) => (
             <div key={t} className="card flex items-center gap-4 p-5">
               <div className="grid h-12 w-12 place-items-center rounded-xl bg-herb-100 text-2xl">{i}</div>

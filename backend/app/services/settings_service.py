@@ -30,7 +30,7 @@ DEFAULTS: dict[str, tuple[Any, str, str]] = {
     "price_gst_inclusive": (True, "Are DP/MRP prices GST-inclusive?", "gst"),
     "company_legal_name": ("Arogyam Aradhya Herbs", "Legal business name on invoice", "gst"),
     "gstin": ("09EJFPP4671A1Z5", "Company GSTIN", "gst"),
-    "company_address": ("Varanasi, Uttar Pradesh", "Company address on invoice", "gst"),
+    "company_address": ("Aradhya Bhavan, Jakhania, Gobind, Ghazipur, Uttar Pradesh", "Company address on invoice", "gst"),
     "company_state": ("Uttar Pradesh", "Company state (place of supply)", "gst"),
     "company_state_code": ("09", "GST state code (UP = 09)", "gst"),
     "hsn_default": ("30049011", "Default HSN/SAC code for products", "gst"),
@@ -43,9 +43,9 @@ DEFAULTS: dict[str, tuple[Any, str, str]] = {
     "payout_day": ("Tuesday", "Weekly payout closing day", "payout"),
     # ---- Site ----
     "company_name": ("Arogyam Aradhya", "Company name", "site"),
-    "support_phone": ("+91 00000 00000", "Support phone", "site"),
-    "support_email": ("support@arogyamaradhya.com", "Support email", "site"),
-    "address": ("Varanasi, Uttar Pradesh", "Company address", "site"),
+    "support_phone": ("+91 95328 21223", "Support phone", "site"),
+    "support_email": ("adminarogyamaradhya@gmail.com", "Support email", "site"),
+    "address": ("Aradhya Bhavan, Jakhania, Gobind, Ghazipur, Uttar Pradesh", "Company address", "site"),
     "whatsapp_number": ("919532821223", "Company WhatsApp number (orders)", "site"),
     "whatsapp_message": (
         "Welcome to Arogyam Aradhya! Here is my order detail and invoice. "

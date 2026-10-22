@@ -1,7 +1,14 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
+import api from "../api";
 
 export default function Footer() {
+  const [site, setSite] = useState({});
+  useEffect(() => {
+    api.get("/site/settings").then((r) => setSite(r.data)).catch(() => {});
+  }, []);
+
   return (
     <footer className="mt-20 bg-herb-900 text-herb-100">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
@@ -34,9 +41,9 @@ export default function Footer() {
         <div>
           <h4 className="mb-3 font-semibold text-white">Contact Info</h4>
           <ul className="space-y-2 text-sm text-herb-200">
-            <li>📞 +91 00000 00000</li>
-            <li>✉️ support@arogyamaradhya.com</li>
-            <li>📍 Varanasi, Uttar Pradesh</li>
+            <li>📞 {site.support_phone || "+91 95328 21223"}</li>
+            <li>✉️ {site.support_email || "adminarogyamaradhya@gmail.com"}</li>
+            <li>📍 {site.address || "Aradhya Bhavan, Jakhania, Gobind, Ghazipur, Uttar Pradesh"}</li>
             <li>🕒 Mon–Sat: 9AM–6PM</li>
           </ul>
         </div>

@@ -23,49 +23,49 @@ CATEGORIES = {
     "wellness": "General Wellness",
     "personal-care": "Personal Care",
     "home-care": "Home Care",
-    "offers": "Offer Packages",
 }
 
-# Official catalog (PRODUCT LIST AROGYAM ARADHYA). DP is the base price; MRP is retail.
-# (name, category_slug, sp, mrp, dp, image, is_offer)
+# Official catalog (from the business-confirmed MRP/DP/SP sheet). DP is the base
+# price and is GST-inclusive; MRP is retail. No offer packs — DP is the only
+# price point members transact on.
+# (name, category_slug, sp, mrp, dp, image)
 PRODUCTS = [
-    ("Anti Addiction Drop 30ml", "wellness", 2, 499, 370, "logo.jpeg", False),
-    ("Tulsi Drop 30ml", "immunity", 0.75, 249, 149, "logo.jpeg", False),
-    ("Cough Syrup 200ml", "wellness", 1, 249, 149, "cough-syrup.jpg", False),
-    ("Weight Loss Syrup 500ml", "wellness", 5, 999, 700, "weightloss-syrup.jpg", False),
-    ("Weight Loss Capsule 30", "wellness", 5, 999, 649, "weightloss-cap.jpg", False),
-    ("Ortho Syrup 200ml", "wellness", 1.5, 299, 199, "ortho-syrup.jpg", False),
-    ("Ortho Capsule 30", "wellness", 1.5, 299, 199, "ortho-cap.jpg", False),
-    ("Mixberry Juice 500ml", "wellness", 10, 1699, 1299, "energy-stamina.jpg", True),
-    ("Amla Tulsi Ginger Curcumin 800ml", "immunity", 2, 499, 280, "logo.jpeg", False),
-    ("Aloevera with Fiber 800ml", "digestive", 2.5, 899, 425, "neem-aloevera.jpg", False),
-    ("Energy & Stamina 3X Power Wellness Kit", "wellness", 6, 1499, 1499, "energy-stamina.jpg", True),
-    ("Neem Aloevera Face Wash", "skin-care", 0.75, 299, 175, "neem-facewash.jpg", False),
-    ("Coffee Face Wash", "skin-care", 0.75, 299, 175, "coffee-facewash.jpg", False),
-    ("Charcoal Face Wash 200ml", "skin-care", 0.75, 299, 175, "coffee-facewash.jpg", False),
-    ("Amla Shikakai Shampoo 200ml", "personal-care", 0.75, 299, 175, "aloevera-shampoo.jpg", False),
-    ("Hinggoli", "digestive", 0.1, 99, 65, "hing-goli.jpg", False),
-    ("Hing Goli Dana", "digestive", 0.2, 119, 85, "hingoli.jpg", False),
-    ("Pain Guard Roll-On", "wellness", 1, 299, 199, "pain-rolon.jpg", False),
-    ("Cough Syrup 100ml", "wellness", 0.25, 149, 149, "cough-syrup-100.jpg", False),
-    ("Giloy Papaya Wheatgrass", "immunity", 2, 525, 299, "giloy-papaya.jpg", False),
-    ("Livzyme", "digestive", 1, 249, 149, "livzyme.jpg", False),
-    ("Seetone", "wellness", 1, 249, 149, "seetone.jpg", False),
-    ("Neem Soap", "personal-care", 0.1, 90, 45, "neem-soap.jpg", False),
-    ("Herbal Shampoo", "personal-care", 1, 349, 249, "aloevera-shampoo.jpg", False),
-    ("Gas Go", "digestive", 1, 249, 149, "gas-go.jpg", False),
-    ("Eye Drop", "wellness", 0.25, 125, 75, "logo.jpeg", False),
-    ("Sanitary Pads", "personal-care", 0.5, 249, 149, "sanitary-pad.jpg", False),
-    ("Smart Bag", "home-care", 2.5, 999, 700, "logo.jpeg", False),
-]
-
-# Business/offer packages (SP values are estimates — confirm & adjust in admin).
-# (name, sp, price, image)
-OFFER_PACKAGES = [
-    ("Starter Offer Pack", 40, 5000, "offer-5000.jpg"),
-    ("Silver Offer Pack", 100, 12500, "offer-12500.jpg"),
-    ("Gold Offer Pack", 200, 25000, "offer-25000.jpg"),
-    ("Platinum Offer Pack", 400, 50000, "offer-50000.jpg"),
+    ("Anti Addiction Drop 30ml", "wellness", 2, 499, 370, "anti-addiction-drop.jpg"),
+    ("Tulsi Amrit Drop 30ml", "immunity", 0.75, 249, 149, "tulsi-amrit-drop.jpg"),
+    ("Kanth Shuddhi Cough Syrup 200ml", "wellness", 1, 249, 149, "kanth-shuddhi-cough-syrup.jpg"),
+    ("Slim-Fit Amrit Syrup 500ml", "wellness", 5, 999, 700, "slimfit-amrit-syrup.jpg"),
+    ("Slim-Fit Amrit Capsule 30", "wellness", 5, 999, 649, "slimfit-amrit-capsule.jpg"),
+    ("Ortho Amrit Ras 200ml", "wellness", 1.5, 299, 199, "ortho-amrit-ras.jpg"),
+    ("Ortho Amrit Capsule 30", "wellness", 1.5, 299, 199, "ortho-amrit-capsule.jpg"),
+    ("Aradhya Super Mixberry Amrit Juice 500ml", "wellness", 10, 1699, 1299, "mixberry-juice.jpg"),
+    ("Amla Tulsi Ginger Curcumin Gold Juice 800ml", "immunity", 2, 499, 280, "amla-tulsi-ginger.jpg"),
+    ("Pure Ghrit Kumari (Aloevera) Juice 800ml", "digestive", 2.5, 899, 425, "ghrit-kumari-juice.jpg"),
+    ("Energy & Stamina 3X Power Wellness Kit", "wellness", 6, 1499, 999, "energy-stamina-kit.jpg"),
+    ("Pure Skin Neem Aloevera Face Wash 200ml", "skin-care", 0.75, 299, 175, "neem-aloevera-facewash.jpg"),
+    ("De-Tan Coffee Face Wash 200ml", "skin-care", 0.75, 299, 175, "coffee-facewash.jpg"),
+    ("Pollution Defense Charcoal Face Wash 200ml", "skin-care", 0.75, 299, 175, "charcoal-facewash.jpg"),
+    ("Amla Shikakai Shampoo 200ml", "personal-care", 0.75, 299, 175, "amla-shikakai-shampoo.jpg"),
+    ("Tasty Pachak Hing Goli 50gm", "digestive", 0.1, 99, 65, "tasty-pachak-hing-goli.jpg"),
+    ("Chatpati Hing Dana 50gm", "digestive", 0.2, 119, 85, "chatpati-hing-dana.jpg"),
+    ("Hing Goli Bada Dana 50gm", "digestive", 0.2, 92, 75, "hing-goli-bada-dana.jpg"),
+    ("Maha-Ortho Sanjavani Pain Guard Rolon 50ml", "wellness", 1.5, 349, 249, "pain-guard-rolon.jpg"),
+    ("Coughnip Syrup 100ml", "wellness", 0.25, 149, 75, "coughnip-syrup.jpg"),
+    ("Kass Care Syrup 100ml", "wellness", 0.25, 149, 75, "kass-care-syrup.jpg"),
+    ("Giloy Papaya Wheatgrass 500ml", "immunity", 2, 525, 299, "giloy-papaya-wheatgrass.jpg"),
+    ("Livozyme 200ml", "digestive", 1, 249, 149, "livozyme.jpg"),
+    ("Livozyme-DS Syrup 200ml", "digestive", 1, 249, 149, "logo.jpeg"),
+    ("Seetone 200ml", "wellness", 1, 249, 149, "seetone.jpg"),
+    ("Neem Soap 75gm", "personal-care", 0.1, 90, 45, "neem-soap.jpg"),
+    ("Aloevera Shampoo 500ml", "personal-care", 1, 349, 249, "aloevera-shampoo.jpg"),
+    ("Gas Go 100gm", "digestive", 1, 249, 149, "gas-go.jpg"),
+    ("Jyoti Rakshak Eye Drops 10ml", "wellness", 0.2, 125, 75, "eye-drops.jpg"),
+    ("Sanitary Pads", "personal-care", 0.5, 249, 149, "sanitary-pad.jpg"),
+    ("Smart Bag", "home-care", 2, 999, 700, "logo.jpeg"),
+    ("Energy & Stamina 3X Power Wellness Oil", "wellness", 1, 399, 299, "energy-stamina-oil.jpg"),
+    ("Energy & Stamina 3X Power Wellness 30 Pak", "wellness", 3, 999, 499, "energy-stamina-30pak.jpg"),
+    ("Energy & Stamina 3X Power Wellness Juice 500ml", "wellness", 3, 999, 549, "logo.jpeg"),
+    ("Aradhya Platelet GPW Syrup 200ml", "immunity", 1, 249, 149, "logo.jpeg"),
+    ("Aradhya Livo+ 100ml", "digestive", 0.5, 149, 75, "logo.jpeg"),
 ]
 
 DESCRIPTION = (
@@ -103,33 +103,22 @@ def seed() -> None:
 
         # Products
         if not db.execute(select(Product)).scalars().first():
-            for name, cslug, sp, mrp, dp, img, offer in PRODUCTS:
+            for name, cslug, sp, mrp, dp, img in PRODUCTS:
                 db.add(Product(
                     name=name,
                     slug=slugify(name),
                     description=DESCRIPTION,
                     category_id=cat_by_slug[cslug].id,
                     mrp=Decimal(str(max(mrp, dp))),  # guard against DP > MRP in source data
-                    price=Decimal(str(dp)),          # DP = distributor/discount price (base)
+                    price=Decimal(str(dp)),          # DP = distributor/discount price (base), GST-inclusive
                     cost_price=Decimal("0"),
                     sp=Decimal(str(sp)),
                     stock=100,
                     image=f"/static/products/{img}",
-                    is_active=True, is_offer=offer,
-                ))
-            for name, sp, price, img in OFFER_PACKAGES:
-                db.add(Product(
-                    name=name,
-                    slug=slugify(name),
-                    description="Business offer package — includes products worth the pack value.",
-                    category_id=cat_by_slug["offers"].id,
-                    mrp=Decimal(str(price)), price=Decimal(str(price)),
-                    cost_price=Decimal("0"), sp=Decimal(str(sp)), stock=1000,
-                    image=f"/static/products/{img}",
-                    is_active=True, is_offer=True,
+                    is_active=True, is_offer=False,
                 ))
             db.commit()
-            print(f"Seeded {len(PRODUCTS)} products + {len(OFFER_PACKAGES)} offer packs.")
+            print(f"Seeded {len(PRODUCTS)} products.")
 
         # Founder / root of the binary tree — the top sponsor for all signups.
         if not db.execute(select(Member)).scalars().first():
