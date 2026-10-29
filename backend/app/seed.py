@@ -53,7 +53,7 @@ PRODUCTS = [
     ("Kass Care Syrup 100ml", "wellness", 0.25, 149, 75, "kass-care-syrup.jpg"),
     ("Giloy Papaya Wheatgrass 500ml", "immunity", 2, 525, 299, "giloy-papaya-wheatgrass.jpg"),
     ("Livozyme 200ml", "digestive", 1, 249, 149, "livozyme.jpg"),
-    ("Livozyme-DS Syrup 200ml", "digestive", 1, 249, 149, "logo.jpeg"),
+    ("Livozyme-DS Syrup 200ml", "digestive", 1, 249, 149, "livozyme-ds-syrup.jpg"),
     ("Seetone 200ml", "wellness", 1, 249, 149, "seetone.jpg"),
     ("Neem Soap 75gm", "personal-care", 0.1, 90, 45, "neem-soap.jpg"),
     ("Aloevera Shampoo 500ml", "personal-care", 1, 349, 249, "aloevera-shampoo.jpg"),
@@ -63,8 +63,8 @@ PRODUCTS = [
     ("Smart Bag", "home-care", 2, 999, 700, "logo.jpeg"),
     ("Energy & Stamina 3X Power Wellness Oil", "wellness", 1, 399, 299, "energy-stamina-oil.jpg"),
     ("Energy & Stamina 3X Power Wellness 30 Pak", "wellness", 3, 999, 499, "energy-stamina-30pak.jpg"),
-    ("Energy & Stamina 3X Power Wellness Juice 500ml", "wellness", 3, 999, 549, "logo.jpeg"),
-    ("Aradhya Platelet GPW Syrup 200ml", "immunity", 1, 249, 149, "logo.jpeg"),
+    ("Energy & Stamina 3X Power Wellness Juice 500ml", "wellness", 3, 999, 549, "energy-stamina-juice.jpg"),
+    ("Aradhya Platelet GPW Syrup 200ml", "immunity", 1, 249, 149, "platelet-gpw-syrup.jpg"),
     ("Aradhya Livo+ 100ml", "digestive", 0.5, 149, 75, "logo.jpeg"),
 ]
 

@@ -23,7 +23,7 @@ export default function Pay() {
                 alt="Arogyam Aradhya Herbs UPI QR code"
                 className="mx-auto h-40 w-40 rounded-2xl object-cover ring-1 ring-herb-100"
               />
-              <p className="mt-3 text-sm font-semibold text-herb-700">9838130222-1@nves</p>
+              <p className="mt-3 text-sm font-semibold text-herb-700">9838130222-1@nyes</p>
             </div>
           </div>
           <div className="mt-8 rounded-xl bg-marigold-50 p-4 text-sm text-marigold-800 ring-1 ring-marigold-100">

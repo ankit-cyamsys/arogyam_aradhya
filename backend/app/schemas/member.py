@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MemberOut(BaseModel):
@@ -68,3 +68,12 @@ class TreeNode(BaseModel):
     position: str | None = None
     left: "TreeNode | None" = None
     right: "TreeNode | None" = None
+    has_more: bool = False
+
+
+class AdminResetPasswordIn(BaseModel):
+    new_password: str = Field(min_length=6, max_length=128)
+
+
+class AdminMemberNameUpdate(BaseModel):
+    name: str = Field(min_length=2, max_length=120)

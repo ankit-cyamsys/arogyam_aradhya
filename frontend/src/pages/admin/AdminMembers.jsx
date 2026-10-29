@@ -11,6 +11,8 @@ export default function AdminMembers() {
   const [rows, setRows] = useState([]);
   const [q, setQ] = useState("");
   const [kyc, setKyc] = useState(null); // {member, documents}
+  const [edit, setEdit] = useState(null); // {member_id, name, newPassword}
+  const [busy, setBusy] = useState(false);
 
   const openKyc = async (id) => {
     const { data } = await api.get(`/admin/members/${id}/kyc`);
@@ -21,11 +23,33 @@ export default function AdminMembers() {
   useEffect(() => { load(); }, [q]);
 
   const toggle = async (id) => { await api.post(`/admin/members/${id}/block`); load(); };
+  const activate = async (id) => {
+    if (!window.confirm(`Activate ${id}? This greens their ID without requiring a self-purchase.`)) return;
+    try { await api.post(`/admin/members/${id}/activate`); load(); }
+    catch (e) { alert(e.friendlyMessage || e.response?.data?.detail || "Failed"); }
+  };
   const payRank = async (id) => {
     const { data } = await api.post(`/admin/members/${id}/pay-rank-bonus`);
     if (data.paid.length === 0) alert("No pending rank bonus for this member.");
     else alert("Paid rank bonuses: " + data.paid.map((p) => `${p.name} ₹${p.bonus}`).join(", "));
     load();
+  };
+  const saveEdit = async () => {
+    setBusy(true);
+    try {
+      if (edit.name.trim()) {
+        await api.put(`/admin/members/${edit.member_id}/name`, { name: edit.name.trim() });
+      }
+      if (edit.newPassword.trim()) {
+        await api.post(`/admin/members/${edit.member_id}/reset-password`, { new_password: edit.newPassword.trim() });
+      }
+      setEdit(null);
+      load();
+    } catch (e) {
+      alert(e.friendlyMessage || e.response?.data?.detail || "Failed");
+    } finally {
+      setBusy(false);
+    }
   };
   const RANK_NAMES = ["—","Winner","Achiever","Warrior","Champion","Master","Commander","Royal Exec","Imperial","Diamond","Crown","King","Global Icon"];
 
@@ -64,6 +88,10 @@ export default function AdminMembers() {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <button onClick={() => openKyc(m.member_id)} className="mr-2 text-herb-600 hover:underline">KYC</button>
+                  <button onClick={() => setEdit({ member_id: m.member_id, name: m.name, newPassword: "" })} className="mr-2 text-herb-600 hover:underline">Edit</button>
+                  {!m.is_active && !m.is_blocked && (
+                    <button onClick={() => activate(m.member_id)} className="mr-2 font-semibold text-herb-600 hover:underline">Activate</button>
+                  )}
                   {m.segment === "mlm" && m.rank_level > m.rank_bonus_paid_level && (
                     <button onClick={() => payRank(m.member_id)} className="mr-2 font-semibold text-marigold-600 hover:underline">Pay Rank Bonus</button>
                   )}
@@ -112,6 +140,37 @@ export default function AdminMembers() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {edit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEdit(null)}>
+          <div className="card w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-herb-800">Edit {edit.member_id}</h2>
+              <button onClick={() => setEdit(null)} className="text-2xl leading-none text-herb-400 hover:text-herb-700">×</button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="label">Name</label>
+                <input className="input" value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} />
+              </div>
+              <div>
+                <label className="label">New Password</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Leave blank to keep current password"
+                  value={edit.newPassword}
+                  onChange={(e) => setEdit({ ...edit, newPassword: e.target.value })}
+                />
+                <p className="mt-1 text-xs text-herb-400">Shown in plain text so you can read it back to the member. Min 6 characters.</p>
+              </div>
+            </div>
+            <button onClick={saveEdit} disabled={busy} className="btn-primary mt-5 w-full">
+              {busy ? "Saving…" : "Save Changes"}
+            </button>
           </div>
         </div>
       )}

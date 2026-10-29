@@ -16,7 +16,7 @@ from app.models import (
     Category,
     PayoutRequest,
 )
-from app.schemas import ProductIn, ProductOut, SettingUpdate
+from app.schemas import ProductIn, ProductOut, SettingUpdate, AdminResetPasswordIn, AdminMemberNameUpdate
 from app.services import settings_service as cfg
 from app.services import ranks as ranks_svc
 from app.services.mlm_engine import close_payout_period, pay_due_rank_bonuses, process_order
@@ -110,16 +110,43 @@ def toggle_block(member_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/members/{member_id}/reset-password")
-def reset_member_password(member_id: str, new_password: str, db: Session = Depends(get_db)):
+def reset_member_password(member_id: str, payload: AdminResetPasswordIn, db: Session = Depends(get_db)):
     from app.core.security import hash_password
-    if len(new_password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
     m = db.execute(select(Member).where(Member.member_id == member_id)).scalar_one_or_none()
     if m is None:
         raise HTTPException(status_code=404, detail="Member not found")
-    m.password_hash = hash_password(new_password)
+    m.password_hash = hash_password(payload.new_password)
     db.commit()
     return {"ok": True, "member_id": member_id}
+
+
+@router.put("/members/{member_id}/name")
+def update_member_name(member_id: str, payload: AdminMemberNameUpdate, db: Session = Depends(get_db)):
+    m = db.execute(select(Member).where(Member.member_id == member_id)).scalar_one_or_none()
+    if m is None:
+        raise HTTPException(status_code=404, detail="Member not found")
+    m.name = payload.name.strip()
+    db.commit()
+    return {"member_id": m.member_id, "name": m.name}
+
+
+@router.post("/members/{member_id}/activate")
+def activate_member(member_id: str, db: Session = Depends(get_db)):
+    """Manually green a member's ID, bypassing the self-purchase SP threshold."""
+    from app.models.base import utcnow
+    from app.services.mlm_engine import _capping_for
+
+    m = db.execute(select(Member).where(Member.member_id == member_id)).scalar_one_or_none()
+    if m is None:
+        raise HTTPException(status_code=404, detail="Member not found")
+    if m.is_active:
+        raise HTTPException(status_code=400, detail="Member is already active")
+    m.is_active = True
+    m.activated_at = utcnow()
+    if m.segment == "mlm" and not m.capping_limit:
+        m.capping_limit = _capping_for(db, m.self_purchase_sp)
+    db.commit()
+    return {"member_id": m.member_id, "is_active": m.is_active}
 
 
 # ---- Orders (payment confirmation) ----
