@@ -6,7 +6,14 @@ from app.schemas.auth import (
     AdminLoginRequest,
     ChangePasswordRequest,
 )
-from app.schemas.member import MemberOut, MemberProfileUpdate, DashboardStats, TreeNode
+from app.schemas.member import (
+    MemberOut,
+    MemberProfileUpdate,
+    DashboardStats,
+    TreeNode,
+    AdminResetPasswordIn,
+    AdminMemberNameUpdate,
+)
 from app.schemas.catalog import CategoryOut, ProductOut, ProductIn
 from app.schemas.order import OrderIn, OrderOut, CartItemIn
 from app.schemas.mlm import (
@@ -21,6 +28,7 @@ __all__ = [
     "SignupRequest", "DirectSignupRequest", "LoginRequest", "TokenResponse", "AdminLoginRequest",
     "ChangePasswordRequest",
     "MemberOut", "MemberProfileUpdate", "DashboardStats", "TreeNode",
+    "AdminResetPasswordIn", "AdminMemberNameUpdate",
     "CategoryOut", "ProductOut", "ProductIn",
     "OrderIn", "OrderOut", "CartItemIn",
     "CommissionOut", "PayoutRequestIn", "PayoutRequestOut", "SettingOut", "SettingUpdate",

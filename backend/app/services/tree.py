@@ -70,7 +70,11 @@ def subtree_counts(db: Session, member: Member) -> dict[str, int]:
 
 
 def build_tree(db: Session, member: Member, depth: int = 3) -> dict:
-    """Serialize the genealogy tree to `depth` levels for the UI."""
+    """Serialize the genealogy tree to `depth` levels for the UI.
+
+    A node at the depth boundary carries `has_more=True` if it actually has
+    children beyond what was fetched, so the UI can offer to expand further.
+    """
 
     def node(m: Member | None, d: int) -> dict | None:
         if m is None:
@@ -82,11 +86,21 @@ def build_tree(db: Session, member: Member, depth: int = 3) -> dict:
             "position": m.position,
             "left": None,
             "right": None,
+            "has_more": False,
         }
+        kids = children(db, m)
         if d > 0:
-            kids = children(db, m)
             data["left"] = node(kids["L"], d - 1)
             data["right"] = node(kids["R"], d - 1)
+        else:
+            data["has_more"] = kids["L"] is not None or kids["R"] is not None
         return data
 
     return node(member, depth)
+
+
+def is_descendant(db: Session, ancestor: Member, target: Member) -> bool:
+    """True if `target` is `ancestor` itself or anywhere in their downline."""
+    if target.id == ancestor.id:
+        return True
+    return any(a.id == ancestor.id for a, _ in ancestors_with_leg(db, target))

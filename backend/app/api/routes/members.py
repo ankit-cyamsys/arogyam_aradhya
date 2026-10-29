@@ -114,6 +114,26 @@ def genealogy(
     return tree.build_tree(db, member, depth)
 
 
+@router.get("/tree/{node_member_id}", response_model=TreeNode)
+def genealogy_subtree(
+    node_member_id: str,
+    depth: int = 3,
+    member: Member = Depends(get_current_member),
+    db: Session = Depends(get_db),
+):
+    """Fetch a subtree rooted at any member in the caller's own downline —
+    lets the Team view expand a branch further down on demand."""
+    depth = max(1, min(depth, 6))
+    target = db.execute(
+        select(Member).where(Member.member_id == node_member_id.strip().upper())
+    ).scalar_one_or_none()
+    if target is None:
+        raise HTTPException(status_code=404, detail="Member not found")
+    if not tree.is_descendant(db, member, target):
+        raise HTTPException(status_code=403, detail="Not in your downline")
+    return tree.build_tree(db, target, depth)
+
+
 @router.get("/team")
 def team_summary(member: Member = Depends(get_current_member), db: Session = Depends(get_db)):
     counts = tree.subtree_counts(db, member)
