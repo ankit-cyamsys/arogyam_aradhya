@@ -54,6 +54,7 @@ PRODUCTS = [
     ("Giloy Papaya Wheatgrass 500ml", "immunity", 2, 525, 299, "giloy-papaya-wheatgrass.jpg"),
     ("Livozyme 200ml", "digestive", 1, 249, 149, "livozyme.jpg"),
     ("Livozyme-DS Syrup 200ml", "digestive", 1, 249, 149, "livozyme-ds-syrup.jpg"),
+    ("Livozyme-DS Syrup 100ml", "digestive", 0.5, 149, 75, "livozyme-ds-syrup-100ml.jpg"),
     ("Seetone 200ml", "wellness", 1, 249, 149, "seetone.jpg"),
     ("Neem Soap 75gm", "personal-care", 0.1, 90, 45, "neem-soap.jpg"),
     ("Aloevera Shampoo 500ml", "personal-care", 1, 349, 249, "aloevera-shampoo.jpg"),
@@ -66,6 +67,7 @@ PRODUCTS = [
     ("Energy & Stamina 3X Power Wellness Juice 500ml", "wellness", 3, 999, 549, "energy-stamina-juice.jpg"),
     ("Aradhya Platelet GPW Syrup 200ml", "immunity", 1, 249, 149, "platelet-gpw-syrup.jpg"),
     ("Aradhya Livo+ 100ml", "digestive", 0.5, 149, 75, "logo.jpeg"),
+    ("Divya Aradhya Amrit 108 Herbs Premium Juice 1000ml", "immunity", 25, 3499, 3125, "108-herbs-juice.jpg"),
 ]
 
 DESCRIPTION = (
