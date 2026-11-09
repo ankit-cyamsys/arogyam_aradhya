@@ -66,6 +66,7 @@ PRODUCTS = [
     ("Energy & Stamina 3X Power Wellness Juice 500ml", "wellness", 3, 999, 549, "energy-stamina-juice.jpg"),
     ("Aradhya Platelet GPW Syrup 200ml", "immunity", 1, 249, 149, "platelet-gpw-syrup.jpg"),
     ("Aradhya Livo+ 100ml", "digestive", 0.5, 149, 75, "logo.jpeg"),
+    ("Divya Aradhya Amrit 108 Herbs Premium Juice 1000ml", "immunity", 25, 3499, 3125, "logo.jpeg"),
 ]
 
 DESCRIPTION = (
