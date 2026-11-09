@@ -88,7 +88,7 @@ export default function AdminMembers() {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <button onClick={() => openKyc(m.member_id)} className="mr-2 text-herb-600 hover:underline">KYC</button>
-                  <button onClick={() => setEdit({ member_id: m.member_id, name: m.name, newPassword: "" })} className="mr-2 text-herb-600 hover:underline">Edit</button>
+                  <button onClick={() => setEdit({ member_id: m.member_id, name: m.name, newPassword: "" })} className="mr-2 text-herb-600 hover:underline">Reset Password</button>
                   {!m.is_active && !m.is_blocked && (
                     <button onClick={() => activate(m.member_id)} className="mr-2 font-semibold text-herb-600 hover:underline">Activate</button>
                   )}
@@ -148,24 +148,29 @@ export default function AdminMembers() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEdit(null)}>
           <div className="card w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-herb-800">Edit {edit.member_id}</h2>
+              <h2 className="text-lg font-bold text-herb-800">Reset Password · {edit.member_id}</h2>
               <button onClick={() => setEdit(null)} className="text-2xl leading-none text-herb-400 hover:text-herb-700">×</button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="label">Name</label>
-                <input className="input" value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} />
-              </div>
-              <div>
-                <label className="label">New Password</label>
+                <label className="label">Set New Password</label>
                 <input
                   className="input"
                   type="text"
                   placeholder="Leave blank to keep current password"
                   value={edit.newPassword}
                   onChange={(e) => setEdit({ ...edit, newPassword: e.target.value })}
+                  autoFocus
                 />
-                <p className="mt-1 text-xs text-herb-400">Shown in plain text so you can read it back to the member. Min 6 characters.</p>
+                <p className="mt-1 text-xs text-herb-400">
+                  A member's old password can never be shown — it's one-way encrypted and not stored anywhere in
+                  readable form, by us or anyone. Set a new one here (shown in plain text as you type) and tell it
+                  to the member. Min 6 characters.
+                </p>
+              </div>
+              <div>
+                <label className="label">Name</label>
+                <input className="input" value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} />
               </div>
             </div>
             <button onClick={saveEdit} disabled={busy} className="btn-primary mt-5 w-full">
