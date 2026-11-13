@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -15,6 +16,7 @@ from app.models import (
     Product,
     Category,
     PayoutRequest,
+    SPLedger,
 )
 from app.schemas import ProductIn, ProductOut, SettingUpdate, AdminResetPasswordIn, AdminMemberNameUpdate
 from app.services import settings_service as cfg
@@ -149,6 +151,21 @@ def activate_member(member_id: str, db: Session = Depends(get_db)):
     return {"member_id": m.member_id, "is_active": m.is_active}
 
 
+@router.get("/orders/{order_id}/invoice")
+def order_invoice(order_id: int, db: Session = Depends(get_db)):
+    from sqlalchemy.orm import selectinload
+    from app.models import Order
+    from app.services.invoice import build_invoice
+    order = (
+        db.execute(
+            select(Order).where(Order.id == order_id).options(selectinload(Order.items))
+        ).scalar_one_or_none()
+    )
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return build_invoice(db, order)
+
+
 # ---- Orders (payment confirmation) ----
 @router.get("/orders")
 def list_orders(status: str | None = None, db: Session = Depends(get_db)):
@@ -255,7 +272,52 @@ def all_payouts(status: str | None = None, db: Session = Depends(get_db)):
             "net": float(r.net or 0),
             "status": r.status,
             "created_at": r.created_at,
+            "bank_name": m.bank_name if m else None,
+            "bank_account": m.bank_account if m else None,
+            "bank_ifsc": m.bank_ifsc if m else None,
         })
+    return out
+
+
+@router.get("/reports/sp")
+def sp_report(date_from: date | None = None, date_to: date | None = None, db: Session = Depends(get_db)):
+    """Per-member self-purchase vs. team (downline) SP within an optional date range."""
+    conditions = []
+    if date_from:
+        conditions.append(SPLedger.created_at >= datetime.combine(date_from, datetime.min.time()))
+    if date_to:
+        conditions.append(SPLedger.created_at < datetime.combine(date_to + timedelta(days=1), datetime.min.time()))
+
+    self_stmt = (
+        select(SPLedger.member_id, func.sum(SPLedger.sp).label("sp"))
+        .where(SPLedger.leg == "S", *conditions)
+        .group_by(SPLedger.member_id)
+    )
+    team_stmt = (
+        select(SPLedger.member_id, func.sum(SPLedger.sp).label("sp"))
+        .where(SPLedger.leg.in_(["L", "R"]), *conditions)
+        .group_by(SPLedger.member_id)
+    )
+    self_map = {row.member_id: float(row.sp) for row in db.execute(self_stmt)}
+    team_map = {row.member_id: float(row.sp) for row in db.execute(team_stmt)}
+
+    member_ids = set(self_map) | set(team_map)
+    if not member_ids:
+        return []
+    members = db.execute(select(Member).where(Member.id.in_(member_ids))).scalars().all()
+    out = []
+    for m in members:
+        self_sp = self_map.get(m.id, 0.0)
+        team_sp = team_map.get(m.id, 0.0)
+        out.append({
+            "member_id": m.member_id,
+            "name": m.name,
+            "segment": m.segment,
+            "self_sp": self_sp,
+            "team_sp": team_sp,
+            "total_sp": self_sp + team_sp,
+        })
+    out.sort(key=lambda r: -r["total_sp"])
     return out
 
 
