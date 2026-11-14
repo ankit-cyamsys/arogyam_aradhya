@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../../api";
 
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -79,7 +80,10 @@ export default function AdminOrders() {
                       <button disabled={busy === o.id} onClick={() => cancel(o.id)} className="text-red-500 hover:underline">Cancel</button>
                     </>
                   )}
-                  {o.payment_status === "paid" && <span className="text-xs text-herb-400">✓ confirmed</span>}
+                  {o.payment_status === "paid" && <span className="mr-2 text-xs text-herb-400">✓ confirmed</span>}
+                  <Link to={`/admin/invoice/${o.id}`} target="_blank" rel="noreferrer" className="text-herb-600 hover:underline">
+                    Download Invoice
+                  </Link>
                 </td>
               </tr>
             ))}

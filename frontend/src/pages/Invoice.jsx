@@ -4,15 +4,16 @@ import api from "../api";
 
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-export default function Invoice() {
+export default function Invoice({ adminMode = false }) {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [inv, setInv] = useState(null);
   const [err, setErr] = useState("");
 
   useEffect(() => {
-    api.get(`/orders/${orderId}/invoice`).then((r) => setInv(r.data)).catch(() => setErr("Invoice not found"));
-  }, [orderId]);
+    const base = adminMode ? "/admin/orders" : "/orders";
+    api.get(`${base}/${orderId}/invoice`).then((r) => setInv(r.data)).catch(() => setErr("Invoice not found"));
+  }, [orderId, adminMode]);
 
   if (err) return <div className="p-10 text-center text-red-600">{err}</div>;
   if (!inv) return <div className="p-10 text-center text-herb-400">Loading invoice…</div>;

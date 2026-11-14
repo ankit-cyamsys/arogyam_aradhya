@@ -41,6 +41,7 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminMembers from "./pages/admin/AdminMembers";
 import AdminPayouts from "./pages/admin/AdminPayouts";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminSpReport from "./pages/admin/AdminSpReport";
 
 function RequireRole({ role, segment, children }) {
   const { auth } = useAuth();
@@ -78,6 +79,15 @@ export default function App() {
         element={
           <RequireRole role="member">
             <Invoice />
+          </RequireRole>
+        }
+      />
+
+      <Route
+        path="/admin/invoice/:orderId"
+        element={
+          <RequireRole role="admin">
+            <Invoice adminMode />
           </RequireRole>
         }
       />
@@ -134,6 +144,7 @@ export default function App() {
         <Route path="products" element={<AdminProducts />} />
         <Route path="members" element={<AdminMembers />} />
         <Route path="payouts" element={<AdminPayouts />} />
+        <Route path="sp-report" element={<AdminSpReport />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
 

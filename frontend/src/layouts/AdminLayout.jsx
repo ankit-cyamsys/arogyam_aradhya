@@ -7,6 +7,7 @@ const NAV = [
   ["🛍️", "Products", "/admin/products"],
   ["👥", "Members", "/admin/members"],
   ["💳", "Payouts", "/admin/payouts"],
+  ["📈", "SP Report", "/admin/sp-report"],
   ["⚙️", "MLM Settings", "/admin/settings"],
 ];
 
