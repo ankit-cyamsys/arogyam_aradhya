@@ -70,6 +70,16 @@ PRODUCTS = [
     ("Divya Aradhya Amrit 108 Herbs Premium Juice 1000ml", "immunity", 25, 3499, 3125, "108-herbs-juice.jpg"),
 ]
 
+# Time-limited promotional listings. Each is marked is_offer=True so it shows
+# in the Offers section alongside (not instead of) the regular product.
+# (name, category_slug, sp, mrp, dp, image)
+# NOTE: remove or deactivate these manually once the stated offer window ends
+# — there's no automatic-expiry feature.
+OFFER_PRODUCTS = [
+    # Chhath Mahaparv offer, 12-Nov-2026 to 25-Nov-2026.
+    ("Divya Aradhya Amrit 108 Herbs Premium Juice 1000ml (Chhath Offer)", "immunity", 15, 3499, 3125, "108-herbs-juice.jpg"),
+]
+
 DESCRIPTION = (
     "Authentic Ayurvedic formulation made with natural herbs. 100% natural & safe, "
     "no side effects, made with trusted quality ingredients."
@@ -121,6 +131,25 @@ def seed() -> None:
                 ))
             db.commit()
             print(f"Seeded {len(PRODUCTS)} products.")
+
+        # Time-limited offer listings — checked by name so they can be added
+        # even on an already-seeded DB without duplicating.
+        for name, cslug, sp, mrp, dp, img in OFFER_PRODUCTS:
+            if not db.execute(select(Product).where(Product.name == name)).scalar_one_or_none():
+                db.add(Product(
+                    name=name,
+                    slug=slugify(name),
+                    description=DESCRIPTION,
+                    category_id=cat_by_slug[cslug].id,
+                    mrp=Decimal(str(max(mrp, dp))),
+                    price=Decimal(str(dp)),
+                    cost_price=Decimal("0"),
+                    sp=Decimal(str(sp)),
+                    stock=100,
+                    image=f"/static/products/{img}",
+                    is_active=True, is_offer=True,
+                ))
+        db.commit()
 
         # Founder / root of the binary tree — the top sponsor for all signups.
         if not db.execute(select(Member)).scalars().first():
